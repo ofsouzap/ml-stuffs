@@ -1,4 +1,4 @@
-from typing import Dict, TypeVar, Generic, Iterator
+from typing import Dict, TypeVar, Generic, Iterator, TextIO
 
 
 A = TypeVar("A")
@@ -49,3 +49,32 @@ class BijMap(Generic[A, B]):
     @property
     def size(self) -> int:
         return len(self.__to)
+
+    def write_to_stream(self, stream: TextIO) -> None:
+        for key in self.iterate_to():
+            value = self.get_to(key)
+            stream.write(f"{str(key)}:{str(value)}\n")
+
+
+def read_str_int_bij_map(stream: TextIO) -> BijMap[str,int]:
+
+    bm = BijMap[str,int]()
+
+    for line in stream.readlines():
+
+        parts = line.split(":")
+
+        if len(parts) < 2:
+            raise ValueError("Invalid stream line: " + line)
+
+        key = ":".join(parts[:-1])
+        value_str = parts[-1]
+
+        try:
+            value = int(value_str)
+        except ValueError:
+            raise ValueError("Invalid value for stream line: " + line)
+
+        bm.set_to(key, value)
+
+    return bm
