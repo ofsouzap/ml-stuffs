@@ -1,0 +1,8 @@
+numpy>=1.25.1
+matplotlib>=3.7.2
+ipykernel>=6.25.1
+ipython>=8.14.0
+jupyter_client>=8.3.0
+jupyter_core>=5.3.1
+progress>=1.6
+pytest>=7.4.0
