@@ -175,6 +175,7 @@ cython_debug/
 
 # Trying stuff scripts
 _trying*.py
+_trying*.ipynb
 
 # Cached data stuff
 .cached_data/*
