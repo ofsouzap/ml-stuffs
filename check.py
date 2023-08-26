@@ -22,10 +22,14 @@ def check(cond: Union[bool, np.bool_], message: str = "") -> None:
         assert cond, message
 
 
-def check_mat_dim(m: npt.NDArray, n: int, message: str = ""):
-    if DEBUG_MODE: check(m.shape[0] == m.shape[1] == n, message)
+def check_is_vec(a: npt.NDArray, message: str = ""):
+    if DEBUG_MODE: check(a.ndim == 1, message)
+def check_vec_dim(x: npt.NDArray, n: int, message: str = ""):
+    if DEBUG_MODE: check(x.shape[0] == n, message)
 def check_is_mat(a: npt.NDArray, message: str = ""):
     if DEBUG_MODE: check(a.ndim == 2, message)
+def check_mat_dim(m: npt.NDArray, n: int, message: str = ""):
+    if DEBUG_MODE: check(m.shape[0] == m.shape[1] == n, message)
 def check_mat_square(m: npt.NDArray, message: str = ""):
     if DEBUG_MODE: check(m.shape[0] == m.shape[1], message)
 def check_mat_symmetrical(m: npt.NDArray, message: str = ""):
