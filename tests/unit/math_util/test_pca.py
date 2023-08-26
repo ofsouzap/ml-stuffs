@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from tests.test_util import *
-from math_util.pca import pca
+from math_util import pca
 
 
 _CASES = [

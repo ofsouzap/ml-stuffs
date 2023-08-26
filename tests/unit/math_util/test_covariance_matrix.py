@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import numpy.typing as npt
 from tests.test_util import *
-from math_util.pca import covariance_matrix
+from math_util import covariance_matrix
 
 
 _CASES = [
