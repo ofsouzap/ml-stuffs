@@ -1,24 +1,11 @@
 import numpy as np
 import numpy.typing as npt
+from numpy.testing import assert_allclose
 from check import *
 
 
 _DEFAULT_RTOL: float = 1e-05
 _DEFAULT_ATOL: float = 1e-08
-
-
-def arrays_close(xs: npt.NDArray,
-                 ys: npt.NDArray,
-                 rtol: float = _DEFAULT_RTOL,
-                 atol: float = _DEFAULT_ATOL) -> bool:
-    return bool(np.all(np.isclose(xs, ys, rtol=rtol, atol=atol), axis=None))
-
-
-def assert_arrays_close(xs: npt.NDArray,
-                        ys: npt.NDArray,
-                        rtol: float = _DEFAULT_RTOL,
-                        atol: float = _DEFAULT_ATOL) -> None:
-    assert arrays_close(xs, ys, rtol=rtol, atol=atol)
 
 
 def assert_vectors_colinear(_xs: npt.NDArray,
@@ -54,7 +41,7 @@ def assert_vectors_colinear(_xs: npt.NDArray,
     facs = ys[:,0] / xs[:,0]
     scaled_xs = xs * (facs[:,np.newaxis])
 
-    assert_arrays_close(scaled_xs, ys, rtol=rtol, atol=atol)
+    assert_allclose(scaled_xs, ys, rtol=rtol, atol=atol)
 
 
 def assert_matrices_proportional(x: npt.NDArray,
@@ -79,7 +66,7 @@ def assert_matrices_proportional(x: npt.NDArray,
     fac = y[0,0] / x[0,0]
     scaled_xs = x * fac
 
-    assert_arrays_close(scaled_xs, y, rtol=rtol, atol=atol)
+    assert_allclose(scaled_xs, y, rtol=rtol, atol=atol)
 
 
 def assert_matrix_symmetric(m: npt.NDArray) -> None:
