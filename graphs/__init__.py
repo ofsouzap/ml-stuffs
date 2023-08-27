@@ -1,4 +1,4 @@
-from typing import List, Tuple, Iterable, Dict, FrozenSet
+from typing import List, Tuple, Iterable, Dict, FrozenSet, Callable, Optional, Set
 from collections import defaultdict
 from abc import ABC, abstractmethod
 import numpy as np
@@ -27,6 +27,52 @@ class UndirectedGraphBase:
     @abstractmethod
     def iterate_node_neighbours(self, node: int) -> Iterable[int]:
         pass
+
+    def bfs(self,
+            start: int,
+            stop_condition: Callable[[int], bool],
+            valid_condition: Optional[Callable[[int], bool]] = None) -> Optional[List[int]]:
+        """Performs a breadth-first search on the graph.
+
+Parameters:
+
+    start - the node to start at
+
+    stop_condition - a function that takes a node and returns whether the algorithm should stop when it reaches the node
+
+    valid_condition (optional) - a function that takes a node and returns whether the node is allowed to be on the path. Defaults to always returning True
+
+Returns:
+
+    path - the path from the start node to a node fulfilling the stop condition if one is found, otherwise None
+"""
+
+        if valid_condition is None:
+            valid_condition = lambda _: True
+
+        visited_nodes: Set[int] = set()
+        queue: List[Tuple[int, List[int]]] = []
+
+        queue.append((start, [start]))
+
+        while queue:
+
+            node, node_path = queue.pop(0)
+            visited_nodes.add(node)
+
+            if stop_condition(node):
+                return node_path
+
+            for other in self.iterate_node_neighbours(node):
+
+                if (other not in visited_nodes) and (valid_condition(other)):
+
+                    other_path = node_path + [other]
+                    queue.append((other, other_path))
+
+        # If no path could be found
+
+        return None
 
 
 class ArrayUndirectedGraph(UndirectedGraphBase):
