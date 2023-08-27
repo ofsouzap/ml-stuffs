@@ -42,19 +42,19 @@ class GameBoard:
     def get_troop_count(self, territory: int) -> int:
         return self.get_occupation(territory)[1]
 
-    def set_occupation(self, territory: int, occupier_idx: int, troop_count: int) -> None:
+    def set_occupation(self, territory: int, occupier: int, troop_count: int) -> None:
 
         old_occupier_idx = self.get_occupier(territory)
 
         # Update self._occupations
 
-        self._occupations[territory] = (occupier_idx, troop_count)
+        self._occupations[territory] = (occupier, troop_count)
 
         # Update self._player_occupations if needed
 
-        if old_occupier_idx != occupier_idx:
+        if old_occupier_idx != occupier:
             self._player_occupations[old_occupier_idx].remove(territory)
-            self._player_occupations[occupier_idx].add(territory)
+            self._player_occupations[occupier].add(territory)
 
     def __setitem__(self, key, value) -> None:
 
