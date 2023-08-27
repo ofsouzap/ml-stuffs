@@ -5,6 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Basic Risk Game",
+            "type": "python",
+            "request": "launch",
+            "module": "examples.risk_game.basic_risk_game",
+            "justMyCode": true
+        },
+        {
+            "name": "Europe Risk Game",
+            "type": "python",
+            "request": "launch",
+            "module": "examples.risk_game.europe_risk_game",
+            "justMyCode": true
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",

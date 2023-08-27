@@ -22,17 +22,20 @@ class Runner:
         def log(self, message: str):
             pass
 
-    INITIAL_PLACEMENT_ROUND_COUNT: int = 30
-    MAX_ATTACKERS: int = 3
-    MAX_DEFENDERS: int = 2
+    DEFAULT_INITIAL_PLACEMENT_ROUND_COUNT: int = 30
+    DEFAULT_MAX_ATTACKERS: int = 3
+    DEFAULT_MAX_DEFENDERS: int = 2
 
     def __init__(self,
                  world: World,
                  player_controllers: Iterable[PlayerControllerBase],
-                 logger: Optional[LoggerBase] = None):
+                 logger: Optional[LoggerBase] = None,
+                 initial_placement_round_count: Optional[int] = None,
+                 max_attackers: Optional[int] = None,
+                 max_defenders: Optional[int] = None):
 
-        self._game: Game = Game(world)
         self._player_controllers: List[PlayerControllerBase] = list(player_controllers)
+        self._game: Game = Game(world, set(range(len(self._player_controllers))))
 
         self._running = False
         self._has_run = False
@@ -47,9 +50,9 @@ class Runner:
 
         # Game Config
 
-        self._initial_placement_round_count: int = Runner.INITIAL_PLACEMENT_ROUND_COUNT
-        self._max_attackers: int = Runner.MAX_ATTACKERS
-        self._max_defenders: int = Runner.MAX_DEFENDERS
+        self._initial_placement_round_count: int = initial_placement_round_count or Runner.DEFAULT_INITIAL_PLACEMENT_ROUND_COUNT
+        self._max_attackers: int = max_attackers or Runner.DEFAULT_MAX_ATTACKERS
+        self._max_defenders: int = max_defenders or Runner.DEFAULT_MAX_DEFENDERS
 
     def log(self, *args, **kwargs):
         return self._logger.log(*args, **kwargs)
@@ -61,6 +64,10 @@ class Runner:
     @property
     def world(self) -> World:
         return self.game.world
+
+    @property
+    def winner(self) -> Optional[int]:
+        return self._winner
 
     def run(self) -> None:
 
@@ -138,6 +145,9 @@ class Runner:
 
             occupy_territory = self._player_controllers[player].decide_initial_placing_board_occupy_territory(self.game)
 
+            if self.game.setup_board.get_occupant(occupy_territory) is not None:
+                raise InvalidPlayerDecisionException("Trying to occupy already-occupied territory")
+
             self.game._setup_board.set_occupant(occupy_territory, player)
 
             self.log(f"Player {player} occupys {self.world.territory_names.get_to(occupy_territory)}")
@@ -155,8 +165,6 @@ class Runner:
                                          start_initial_placement_round_idx: int,
                                          initial_placement_round_count: int) -> Tuple[int, int]:
 
-        assert self.game.game_board is not None
-
         player_idx: int = start_player_idx
         initial_placement_round_idx: int = start_initial_placement_round_idx
 
@@ -166,8 +174,11 @@ class Runner:
 
             place_territory = self._player_controllers[player].decide_initial_placing_troop_placement_territory(self.game)
 
+            if self.game.game_board.get_occupier(place_territory) != player:
+                raise InvalidPlayerDecisionException("Trying to reinforce a territory that isn't the player's")
+
             self.game.game_board.add_troops(place_territory, 1)
-            self.log(f"Player {player} adds a troop to {self.world.territory_names.get_to(place_territory)}")
+            self.log(f"Player {player} reinforces {self.world.territory_names.get_to(place_territory)} with a troop")
 
             player_idx += 1
             if player_idx == len(player_order):
@@ -177,8 +188,6 @@ class Runner:
         return player_idx, initial_placement_round_idx
 
     def _run_main_game(self, player_order: List[int]) -> None:
-
-        assert self.game.game_board is not None
 
         round_idx: int = 0
         player_idx: int = 0
@@ -199,15 +208,15 @@ class Runner:
 
     def _run_main_game_player_turn(self, player: int) -> None:
 
-        assert self.game.game_board is not None
-
         self._run_main_game_player_turn_placement_phase(player)
-        self._run_main_game_player_turn_attack_phase(player)
-        self._run_main_game_player_turn_relocation_phase(player)
+
+        if not self.game.player_has_won():
+            self._run_main_game_player_turn_attack_phase(player)
+
+        if not self.game.player_has_won():
+            self._run_main_game_player_turn_relocation_phase(player)
 
     def _run_main_game_player_turn_placement_phase(self, player: int) -> None:
-
-        assert self.game.game_board is not None
 
         troops_to_place = self.game.get_player_troop_gain_allowance(player)
 
@@ -217,9 +226,12 @@ class Runner:
 
         player_controller = self._player_controllers[player]
 
-        placing_territories = player_controller.decide_troop_placement_territories(self.game, troops_to_place)
+        placing_territories = list(player_controller.decide_troop_placement_territories(self.game, troops_to_place))
 
         # Check all choices are valid
+
+        if len(placing_territories) != troops_to_place:
+            raise InvalidPlayerDecisionException("Placing incorrect number of troops")
 
         for territory in placing_territories:
             if self.game.game_board.get_occupier(territory) != player:
@@ -233,11 +245,9 @@ class Runner:
 
     def _run_main_game_player_turn_attack_phase(self, player: int) -> None:
 
-        assert self.game.game_board is not None
-
         player_controller = self._player_controllers[player]
 
-        while attack_action := player_controller.decide_attack_action(self.game):
+        while (not self.game.player_has_won()) and (attack_action := player_controller.decide_attack_action(self.game)):
 
             # Check attack is valid
 
@@ -256,12 +266,15 @@ class Runner:
             if self.game.game_board.get_troop_count(attack_action.from_territory) - attack_action.attackers < 1:
                 raise InvalidPlayerDecisionException("Trying to attack with more troops than player has spare from selected territory")
 
+            if not self.world.territories_are_neighbours(attack_action.from_territory, attack_action.to_territory):
+                raise InvalidPlayerDecisionException("Territory being attacked from and territory attacking into must be neighbours")
+
             # Get defender count
 
             defender = self.game.game_board.get_occupier(attack_action.to_territory)
 
             self.log(f"Player {player} will \
-attack player {defender}\
+attack player {defender} \
 at {self.world.territory_names.get_to(attack_action.to_territory)} \
 from {self.world.territory_names.get_to(attack_action.from_territory)} \
 with {attack_action.attackers} troops")
@@ -288,7 +301,7 @@ with {attack_action.attackers} troops")
 
             surviving_attackers = attack_action.attackers - killed_attackers
 
-            self.log(f"{killed_attackers} were killed and {killed_defenders} were killed")
+            self.log(f"{killed_attackers} attackers were killed and {killed_defenders} defenders were killed")
 
             # Kill troops killed
 
@@ -308,8 +321,6 @@ with {attack_action.attackers} troops")
 
     def _run_main_game_player_turn_relocation_phase(self, player: int) -> None:
 
-        assert self.game.game_board is not None
-
         player_controller = self._player_controllers[player]
 
         relocate_action = player_controller.decide_troop_relocate(self.game)
@@ -328,11 +339,17 @@ with {attack_action.attackers} troops")
             if self.game.game_board.get_occupier(relocate_action.to_territory) != player:
                 raise InvalidPlayerDecisionException("Player trying to relocate to another player's territory")
 
+            if relocate_action.to_territory == relocate_action.from_territory:
+                raise InvalidPlayerDecisionException("Trying to relocate from a territory to itself")
+
             if relocate_action.troop_count <= 0:
                 raise InvalidPlayerDecisionException("Number of troops relocated must be positive")
 
             if self.game.game_board.get_troop_count(relocate_action.from_territory) - relocate_action.troop_count < 1:
                 raise InvalidPlayerDecisionException("Relocation chosen would leave no troops in territory")
+
+            if not self.game.game_board.territories_have_continuous_route_with_same_occupier(relocate_action.from_territory, relocate_action.to_territory):
+                raise InvalidPlayerDecisionException("Relocation territories aren't connected by only player's territories")
 
             # Move troops
 

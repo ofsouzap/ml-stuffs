@@ -1,6 +1,6 @@
 from typing import List, Tuple, Dict, DefaultDict, Iterable, Set
 from collections import defaultdict
-from graphs import UndirectedGraph
+from graphs import UndirectedGraphBase, ArrayUndirectedGraph
 from bij_map import BijMap
 
 
@@ -63,7 +63,7 @@ class World:
 
         # Create graph
 
-        self.graph = UndirectedGraph(len(self.territory_names), graph_edges)
+        self.graph: UndirectedGraphBase = ArrayUndirectedGraph(len(self.territory_names), graph_edges)
 
         # Read continent troop gains
 
@@ -90,3 +90,9 @@ class World:
 
     def iterate_territories(self) -> Iterable[int]:
         return self.territory_names.iterate_to()
+
+    def iterate_territory_neighbours(self, territory: int) -> Iterable[int]:
+        return self.graph.iterate_node_neighbours(territory)
+
+    def territories_are_neighbours(self, territory_a: int, territory_b: int) -> bool:
+        return self.graph[territory_a, territory_b]

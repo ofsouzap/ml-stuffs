@@ -16,15 +16,20 @@ class GameBoard:
         self._occupations: Dict[int,Tuple[int,int]] = {}
         """territory_idx --to-> (occupying player's index, number of troops there)"""
 
-        for territory in self._world.iterate_territories():
-
-            occupant_idx = setup_board.get_occupant(territory)
-            assert occupant_idx is not None
-
-            self._occupations[territory] = (occupant_idx, 1)
-
         self._player_occupations: Dict[int, Set[int]] = {}
         """player_idx --to-> territory indexes that they occupy"""
+
+        for territory in self._world.iterate_territories():
+
+            occupant = setup_board.get_occupant(territory)
+            assert occupant is not None
+
+            self._occupations[territory] = (occupant, 1)
+
+            if occupant not in self._player_occupations:
+                self._player_occupations[occupant] = set()
+
+            self._player_occupations[occupant].add(territory)
 
     def get_occupation(self, territory: int) -> Tuple[int,int]:
         return self._occupations[territory]
@@ -93,3 +98,16 @@ class GameBoard:
             lambda territory: self.get_occupier(territory) == player,
             self._world.continent_territories[continent]
         ))
+
+    def territories_have_continuous_route_with_same_occupier(self, territory_a: int, territory_b: int) -> bool:
+
+        if self.get_occupier(territory_a) != self.get_occupier(territory_b):
+            raise ValueError("Start and end territories don't have same occupier")
+
+        occupier = self.get_occupier(territory_a)
+
+        return self._world.graph.bfs_find_path(
+            start=territory_a,
+            stop_condition=lambda n: n == territory_b,
+            valid_condition=lambda n: self.get_occupier(n) == occupier
+        ) is not None
