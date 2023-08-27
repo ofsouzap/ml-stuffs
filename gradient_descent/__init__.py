@@ -1,4 +1,4 @@
-from typing import Callable, Optional, List, SupportsFloat
+from typing import Callable, Optional, List, SupportsFloat, Tuple
 import numpy as np
 import numpy.typing as npt
 from check import check_is_vec, check_vec_dim, check_is_mat, check_mat_dim
@@ -69,7 +69,8 @@ def find_any_extremum(
     learning_rate: SupportsFloat = 1e-03,
     maximum_iterations: Optional[int] = None,
     gradient_estimation_eps: Optional[SupportsFloat] = None,
-    stop_gradient: SupportsFloat = 1e-08) -> npt.NDArray[np.float64]:
+    stop_gradient: SupportsFloat = 1e-08,
+    return_intermediates: bool = False) -> Tuple[List[npt.NDArray[np.float64]], npt.NDArray[np.float64]]:
     """Performs gradient to find any single extreme value of a N-D field.
 
 Parameters:
@@ -87,7 +88,11 @@ This is the function that the extreme value is trying to be found for.
 
     stop_gradient - how stationary a point must seem to be before stopping the algorithm.
 
+    return_intermediates - if true, the result will include the intermediate points, otherwise this will be empty
+
 Returns:
+
+    intermediate_points - a list of the positions visited during the algorithm. If return_intermediates is false then this will always be empty
 
     stationary_point - the input values for the stationary point discovered.
 """
@@ -114,10 +119,17 @@ Returns:
 
     # Main learning loop
 
+    intermediates: List[npt.NDArray[np.float64]] = []
+
     curr_pos = start.copy()
 
     iteration_idx = 0
     while (maximum_iterations is None) or (iteration_idx < maximum_iterations):
+
+        # Add current position to intermediate positions
+
+        if return_intermediates:
+            intermediates.append(curr_pos.copy())
 
         # Calculate gradient
 
@@ -130,7 +142,6 @@ Returns:
         check_is_vec(grad, "Gradient isn't returned as a vector")
 
         grad_mag = np.sum(np.square(grad))
-        grad_dir = grad / grad_mag
 
         # Check if algorithm can terminate
 
@@ -139,7 +150,7 @@ Returns:
 
         # Move in direction of gradient
 
-        delta_pos = -grad_dir * learning_rate
+        delta_pos = -grad * learning_rate
 
         curr_pos += delta_pos
 
@@ -147,4 +158,4 @@ Returns:
 
         iteration_idx += 1
 
-    return curr_pos
+    return intermediates, curr_pos
