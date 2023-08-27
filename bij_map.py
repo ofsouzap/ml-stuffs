@@ -37,7 +37,7 @@ class BijMap(Generic[A, B]):
     def to_contains(self, a: A) -> bool:
         return a in self.__to
 
-    def from_contins(self, b: B) -> bool:
+    def from_contains(self, b: B) -> bool:
         return b in self.__from
 
     def iterate_to(self) -> Iterator[A]:
@@ -49,6 +49,9 @@ class BijMap(Generic[A, B]):
     @property
     def size(self) -> int:
         return len(self.__to)
+
+    def __len__(self) -> int:
+        return self.size
 
     def write_to_stream(self, stream: TextIO) -> None:
         for key in self.iterate_to():
