@@ -1,6 +1,6 @@
 from typing import List, Tuple
 import pytest
-from graphs import UndirectedGraph
+from graphs import ArrayUndirectedGraph
 
 
 _CASES: List[Tuple[int,List[Tuple[int,int]]]] = [
@@ -55,13 +55,13 @@ _CASES: List[Tuple[int,List[Tuple[int,int]]]] = [
 
 @pytest.mark.parametrize(("n","edges"), _CASES)
 def test_init(n: int, edges: List[Tuple[int,int]]) -> None:
-    graph = UndirectedGraph(n, edges)
+    graph = ArrayUndirectedGraph(n, edges)
 
 
 @pytest.mark.parametrize(("n","edges"), _CASES)
 def test_get(n: int, edges: List[Tuple[int,int]]) -> None:
 
-    graph = UndirectedGraph(n, edges)
+    graph = ArrayUndirectedGraph(n, edges)
 
     for a in range(n):
         for b in range(n):
