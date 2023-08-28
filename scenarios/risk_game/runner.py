@@ -192,7 +192,8 @@ class Runner:
 
             player = player_order[player_idx]
 
-            self._run_main_game_player_turn(player)
+            if self.game.player_is_active(player):
+                self._run_main_game_player_turn(player)
 
             player_idx += 1
             if player_idx == len(player_order):

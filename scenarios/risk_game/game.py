@@ -68,6 +68,10 @@ class Game:
     def max_defenders(self) -> int:
         return self._max_defenders
 
+    def player_is_active(self, player: int) -> bool:
+        """Checks if a player is still active, that is they still own any territories"""
+        return len(self.game_board.get_player_territories(player)) > 0
+
     def generate_game_board(self) -> None:
 
         if not self._setup_board.is_all_occupied():
