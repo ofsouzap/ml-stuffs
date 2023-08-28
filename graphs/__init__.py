@@ -109,6 +109,87 @@ Returns:
                     other_path = node_path + [other]
                     queue.append((other, other_path))
 
+    def dfs_find_path(self,
+                      start: int,
+                      stop_condition: Callable[[int], bool],
+                      valid_condition: Optional[Callable[[int], bool]] = None) -> Optional[List[int]]:
+        """Performs a depth-first search on the graph to find a path to a valid node.
+
+Parameters:
+
+    start - the node to start at
+
+    stop_condition - a function that takes a node and returns whether the algorithm should stop when it reaches the node
+
+    valid_condition (optional) - a function that takes a node and returns whether the node is allowed to be on the path. Defaults to always returning True
+
+Returns:
+
+    path - the path from the start node to a node fulfilling the stop condition if one is found, otherwise None
+"""
+
+        if valid_condition is None:
+            valid_condition = lambda _: True
+
+        visited_nodes: Set[int] = set()
+        stack: List[Tuple[int, List[int]]] = []
+
+        stack.append((start, [start]))
+
+        while stack:
+
+            node, node_path = stack.pop(-1)
+            visited_nodes.add(node)
+
+            if stop_condition(node):
+                return node_path
+
+            for other in self.iterate_node_neighbours(node):
+
+                if (other not in visited_nodes) and (valid_condition(other)):
+
+                    other_path = node_path + [other]
+                    stack.append((other, other_path))
+
+        # If no path could be found
+
+        return None
+
+    def dfs_find_all(self,
+                     start: int,
+                     valid_condition: Callable[[int], bool]) -> Iterable[int]:
+        """Performs a depth-first search on the graph to find all nodes reachable from the starting node using a certain subset of the nodes.
+
+Parameters:
+
+    start - the node to start at
+
+    valid_condition - a function that takes a node and returns whether the node is allowed to be on a path to an output node
+
+Returns:
+
+    nodes - the nodes that have a valid path to them
+"""
+
+        visited_nodes: Set[int] = set()
+        stack: List[Tuple[int, List[int]]] = []
+
+        stack.append((start, [start]))
+
+        while stack:
+
+            node, node_path = stack.pop(-1)
+            visited_nodes.add(node)
+
+            yield node
+
+            for other in self.iterate_node_neighbours(node):
+
+                if (other not in visited_nodes) and (valid_condition(other)):
+
+                    other_path = node_path + [other]
+                    stack.append((other, other_path))
+
 
 class ArrayUndirectedGraph(UndirectedGraphBase):
     """An immutable undirected graph implementation using an array to store adjacency truth values"""
