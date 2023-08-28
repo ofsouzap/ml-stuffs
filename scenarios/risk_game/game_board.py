@@ -96,7 +96,7 @@ class GameBoard:
     def player_occupies_entire_continent(self, player: int, continent: int) -> bool:
         return all(map(
             lambda territory: self.get_occupier(territory) == player,
-            self._world.continent_territories[continent]
+            self._world.get_continent_territories(continent)
         ))
 
     def territories_have_continuous_route_with_same_occupier(self, territory_a: int, territory_b: int) -> bool:

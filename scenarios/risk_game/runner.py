@@ -146,7 +146,7 @@ class Runner:
 
             self.game._setup_board.set_occupant(occupy_territory, player)
 
-            self.log(f"Player {player} occupys {self.world.territory_names.get_to(occupy_territory)}")
+            self.log(f"Player {player} occupys {self.world.get_territory_name(occupy_territory)}")
 
             player_idx += 1
             if player_idx == len(player_order):
@@ -174,7 +174,7 @@ class Runner:
                 raise InvalidPlayerDecisionException("Trying to reinforce a territory that isn't the player's")
 
             self.game.game_board.add_troops(place_territory, 1)
-            self.log(f"Player {player} reinforces {self.world.territory_names.get_to(place_territory)} with a troop")
+            self.log(f"Player {player} reinforces {self.world.get_territory_name(place_territory)} with a troop")
 
             player_idx += 1
             if player_idx == len(player_order):
@@ -237,7 +237,7 @@ class Runner:
 
         for territory in placing_territories:
             self.game.game_board.add_troops(territory, 1)
-            self.log(f"{player} adds a troop to {self.world.territory_names.get_to(territory)}")
+            self.log(f"{player} adds a troop to {self.world.get_territory_name(territory)}")
 
     def _run_main_game_player_turn_attack_phase(self, player: int) -> None:
 
@@ -271,8 +271,8 @@ class Runner:
 
             self.log(f"Player {player} will \
 attack player {defender} \
-at {self.world.territory_names.get_to(attack_action.to_territory)} \
-from {self.world.territory_names.get_to(attack_action.from_territory)} \
+at {self.world.get_territory_name(attack_action.to_territory)} \
+from {self.world.get_territory_name(attack_action.from_territory)} \
 with {attack_action.attackers} troops")
 
             defender_controller = self._player_controllers[defender]
@@ -313,7 +313,7 @@ with {attack_action.attackers} troops")
                 self.game.game_board.remove_troops(attack_action.from_territory, surviving_attackers)
                 self.game.game_board.set_occupation(attack_action.to_territory, player, surviving_attackers)
 
-                self.log(f"Player {player} has occupied {self.world.territory_names.get_to(attack_action.to_territory)} with {surviving_attackers} troops")
+                self.log(f"Player {player} has occupied {self.world.get_territory_name(attack_action.to_territory)} with {surviving_attackers} troops")
 
     def _run_main_game_player_turn_relocation_phase(self, player: int) -> None:
 
@@ -354,5 +354,5 @@ with {attack_action.attackers} troops")
 
             self.log(f"Player {player} has relocated \
 {relocate_action.troop_count} troops \
-from {self.world.territory_names.get_to(relocate_action.from_territory)} \
-to {self.world.territory_names.get_to(relocate_action.to_territory)}")
+from {self.world.get_territory_name(relocate_action.from_territory)} \
+to {self.world.get_territory_name(relocate_action.to_territory)}")

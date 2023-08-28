@@ -257,7 +257,7 @@ class UncheckedConsolePlayerController(PlayerControllerBase):
 +--------------------+
 
 Territories:
-\t""" + "\n\t".join([f"{territory} ({game.world.territory_names.get_to(territory)}) - " + \
+\t""" + "\n\t".join([f"{territory} ({game.world.get_territory_name(territory)}) - " + \
     (f"{game.setup_board.get_occupant(territory)}'s troops" if game.setup_board.get_occupant(territory) is not None else "empty") \
     for territory in game.world.iterate_territories()]) + """
 """)
@@ -273,7 +273,7 @@ Players:
 \t""" + "\n\t".join([str(player) for player in game.players]) + """
 
 Territories:
-\t""" + "\n\t".join([f"{territory} ({game.world.territory_names.get_to(territory)}) - {game.game_board.get_troop_count(territory)} of player {game.game_board.get_occupier(territory)}'s troops"
+\t""" + "\n\t".join([f"{territory} ({game.world.get_territory_name(territory)}) - {game.game_board.get_troop_count(territory)} of player {game.game_board.get_occupier(territory)}'s troops"
     for territory in game.world.iterate_territories()]) + """
 """)
 
@@ -304,7 +304,7 @@ Territories:
 
     def decide_defender_count(self, game: Game, attack_action: AttackAction) -> int:
         self.__print_game_board_state(game)
-        return int(input(f"""You are being attacked from {game.world.territory_names.get_to(attack_action.from_territory)} to {game.world.territory_names.get_to(attack_action.to_territory)} with {attack_action.attackers} troops.
+        return int(input(f"""You are being attacked from {game.world.get_territory_name(attack_action.from_territory)} to {game.world.get_territory_name(attack_action.to_territory)} with {attack_action.attackers} troops.
 How many troops to defend with> """))
 
     def decide_troop_relocate(self, game: Game) -> Optional[TroopRelocateAction]:

@@ -7,7 +7,7 @@ import numpy.typing as npt
 
 
 class UndirectedGraphBase:
-    """Base class for classes representing undirected graphs"""
+    """Base class for classes representing immutable undirected graphs"""
 
     @abstractmethod
     def get(self, a: int, b: int) -> bool:
