@@ -2,9 +2,12 @@ from typing import Iterable, NamedTuple, Optional, DefaultDict, Set, List
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from random import choice as random_choice
+from random import sample as random_sample
 from random import randint
 from scenarios.risk_game.game import Game
+from scenarios.risk_game.territory_card import TerritoryCard
 from .game import Game
+from .territory_card import TerritoryCard
 
 
 class AttackAction(NamedTuple):
@@ -54,6 +57,36 @@ Parameters:
 Returns:
 
     territory - the territory the player has chosen to place a troop in
+"""
+        pass
+
+    @abstractmethod
+    def decide_trade_in_territory_cards(self, game: Game) -> Optional[Set[TerritoryCard]]:
+        """Tells the player to choose what territory cards they want to trade in or if they don't want to trade any in.
+
+Parameters:
+
+    game - the instance of the running game
+
+Returns:
+
+    cards_to_trade_in - the cards the player has chosen to spend or None if they decided not to spend. \
+The set of cards chosen must have the right number of cards and follow the validity rules of cards to trade in together.
+"""
+        pass
+
+    @abstractmethod
+    def decide_forced_trade_in_territory_cards(self, game: Game) -> Set[TerritoryCard]:
+        """Tells the player to choose what territory cards they want to trade in which they must choose, they cannot choose not to trade in cards.
+
+Parameters:
+
+    game - the instance of the running game
+
+Returns:
+
+    cards_to_trade_in - the cards the player has chosen to spend. \
+The set of cards chosen must have the right number of cards and follow the validity rules of cards to trade in together.
 """
         pass
 
@@ -138,6 +171,88 @@ class RandomizedComputerPlayerController(PlayerControllerBase):
         options = game.game_board.get_player_territories(self.self_player)
 
         return random_choice(list(options))
+
+    def decide_trade_in_territory_cards(self, game: Game) -> Optional[Set[TerritoryCard]]:
+
+        options_by_class: List[Set[TerritoryCard]] = [set() for _ in range(game.territory_card_class_count)]
+
+        for territory_card in game.get_player_territory_cards(self.self_player):
+            options_by_class[territory_card.card_class].add(territory_card)
+
+        has_instance_of_all_classes: bool = all(map(lambda x: len(x) > 0, options_by_class))
+        has_enough_instances_of_single_class: bool = any(map(lambda x: len(x) >= game.territory_card_class_count, options_by_class))
+
+        if has_enough_instances_of_single_class or has_instance_of_all_classes:
+
+            if randint(0, min([len(xs) for xs in options_by_class])) == 0:
+
+                # Choosing not to trade in any cards
+
+                return None
+
+            else:
+
+                use_instance_of_all_classes: bool = \
+                    not has_enough_instances_of_single_class \
+                    or randint(0,1) == 0
+
+                if use_instance_of_all_classes:
+
+                    cards_to_trade_in: Set[TerritoryCard] = set([random_choice(list(xs)) for xs in options_by_class])
+
+                    return cards_to_trade_in
+
+                else:
+
+                    options_choices = list(filter(
+                        lambda xs: len(xs) >= game.territory_card_class_count,
+                        options_by_class
+                    ))
+
+                    options_chosen = random_choice(options_choices)
+
+                    cards_to_trade_in: Set[TerritoryCard] = set(random_sample(options_chosen, k=game.territory_card_class_count))
+
+                    return cards_to_trade_in
+
+        else:
+
+            return None
+
+    def decide_forced_trade_in_territory_cards(self, game: Game) -> Set[TerritoryCard]:
+
+        options_by_class: List[Set[TerritoryCard]] = [set() for _ in range(game.territory_card_class_count)]
+
+        for territory_card in game.get_player_territory_cards(self.self_player):
+            options_by_class[territory_card.card_class].add(territory_card)
+
+        has_instance_of_all_classes: bool = all(map(lambda x: len(x) > 0, options_by_class))
+        has_enough_instances_of_single_class: bool = any(map(lambda x: len(x) >= game.territory_card_class_count, options_by_class))
+
+        assert has_instance_of_all_classes or has_enough_instances_of_single_class, "Trying to force player to choose to trade in cards when they can't"
+
+        use_instance_of_all_classes: bool = \
+            not has_enough_instances_of_single_class \
+            or randint(0,1) == 0
+
+        if use_instance_of_all_classes:
+
+            cards_to_trade_in: Set[TerritoryCard] = set([random_choice(list(xs)) for xs in options_by_class])
+
+            return cards_to_trade_in
+
+        else:
+
+            options_choices = list(filter(
+                lambda xs: len(xs) >= game.territory_card_class_count,
+                options_by_class
+            ))
+
+            options_chosen = random_choice(options_choices)
+
+            cards_to_trade_in: Set[TerritoryCard] = set(random_sample(options_chosen, k=game.territory_card_class_count))
+
+            return cards_to_trade_in
 
     def decide_troop_placement_territories(self, game: Game, troop_count: int) -> Iterable[int]:
 
@@ -249,8 +364,7 @@ class RandomizedComputerPlayerController(PlayerControllerBase):
 class UncheckedConsolePlayerController(PlayerControllerBase):
     """A very basic player controller for a player playing through the console. Only for use during debugging because it is really bad"""
 
-    @staticmethod
-    def __print_setup_board_state(game: Game) -> None:
+    def __print_setup_board_state(self, game: Game) -> None:
         print(f"""\
 +--------------------+
 | Set-Up Board State |
@@ -262,8 +376,7 @@ Territories:
     for territory in game.world.iterate_territories()]) + """
 """)
 
-    @staticmethod
-    def __print_game_board_state(game: Game) -> None:
+    def __print_game_board_state(self, game: Game) -> None:
         print(f"""\
 +------------+
 | Game State |
@@ -271,6 +384,10 @@ Territories:
 
 Players:
 \t""" + "\n\t".join([str(player) for player in game.players]) + """
+
+Your Cards:
+\t""" + "\n\t".join([f"{game.world.get_territory_name(card.territory)}-{card.card_class}" \
+    for card in sorted(game.get_player_territory_cards(self.self_player), key=lambda card: card.territory)]) + """
 
 Territories:
 \t""" + "\n\t".join([f"{territory} ({game.world.get_territory_name(territory)}) - {game.game_board.get_troop_count(territory)} of player {game.game_board.get_occupier(territory)}'s troops"
@@ -284,6 +401,32 @@ Territories:
     def decide_initial_placing_troop_placement_territory(self, game: Game) -> int:
         self.__print_game_board_state(game)
         return int(input("Choose where to put a reinforcement troop> "))
+
+    def decide_trade_in_territory_cards(self, game: Game) -> Optional[Set[TerritoryCard]]:
+
+        if input("Do you want to attack? ").lower() in ["y", "yes", "1", "true"]:
+            return self.decide_forced_trade_in_territory_cards(game)
+        else:
+            return None
+
+    def decide_forced_trade_in_territory_cards(self, game: Game) -> Set[TerritoryCard]:
+
+        self.__print_game_board_state(game)
+
+        territories: Set[int] = set(
+            map(
+                lambda x: game.world.territory_by_name(x.strip()),
+                input("Which territories' territory cards will you trade in (CSV)> ").split(",")
+            )
+        )
+
+        cards_to_trade_in: Set[TerritoryCard] = set()
+
+        for card in game.get_player_territory_cards(self.self_player):
+            if card.territory in territories:
+                cards_to_trade_in.add(card)
+
+        return cards_to_trade_in
 
     def decide_troop_placement_territories(self, game: Game, troop_count: int) -> Iterable[int]:
         if troop_count == 0:

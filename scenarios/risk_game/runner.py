@@ -1,10 +1,11 @@
-from typing import Iterable, List, Tuple, Optional
+from typing import Iterable, List, Tuple, Optional, Set
 from abc import ABC, abstractmethod
 from random import shuffle
 from .player_controller import PlayerControllerBase
 from .game import Game
 from .world import World
 from .battle import battle
+from .territory_card import TerritoryCard
 
 
 class InvalidPlayerDecisionException(Exception):
@@ -28,7 +29,8 @@ class Runner:
                  logger: Optional[LoggerBase] = None,
                  initial_placement_round_count: Optional[int] = None,
                  max_attackers: Optional[int] = None,
-                 max_defenders: Optional[int] = None):
+                 max_defenders: Optional[int] = None,
+                 territory_card_class_count: Optional[int] = None):
 
         self._player_controllers: List[PlayerControllerBase] = list(player_controllers)
         self._game: Game = Game(
@@ -37,6 +39,7 @@ class Runner:
             initial_placement_round_count=initial_placement_round_count,
             max_attackers=max_attackers,
             max_defenders=max_defenders,
+            territory_card_class_count=territory_card_class_count,
         )
 
         self._running = False
@@ -64,6 +67,44 @@ class Runner:
     @property
     def winner(self) -> Optional[int]:
         return self._winner
+
+    def _check_player_troop_placement_territories(self, player: int, troops_to_place: int, placing_territories: List[int]) -> None:
+
+        if len(placing_territories) != troops_to_place:
+            raise InvalidPlayerDecisionException("Placing incorrect number of troops")
+
+        for territory in placing_territories:
+            if self.game.game_board.get_occupier(territory) != player:
+                raise InvalidPlayerDecisionException()
+
+    def _check_player_territory_card_trade_in(self, player: int, cards_to_trade_in: Set[TerritoryCard]) -> None:
+
+        # Check count is correct
+
+        if len(cards_to_trade_in) != self.game.territory_card_class_count:
+            raise InvalidPlayerDecisionException("Number of territory cards used must be exactly number of territory card classes")
+
+        # Check all cards are player's cards
+
+        player_cards = self.game.get_player_territory_cards(player)
+        for card in cards_to_trade_in:
+            if card not in player_cards:
+                raise InvalidPlayerDecisionException("Player doesn't own card trying to be used")
+
+        # Check validity of selection classes
+
+        covering_all_sets: bool
+        covering_one_set_fully: bool
+
+        card_class_counts: List[int] = [0 for _ in range(self.game.territory_card_class_count)]
+        for card in cards_to_trade_in:
+            card_class_counts[card.card_class] += 1
+
+        covering_all_sets = all(map(lambda x: x == 1, card_class_counts))
+        covering_one_set_fully = any(map(lambda x: x == self.game.territory_card_class_count, card_class_counts))
+
+        if (not (covering_all_sets or covering_one_set_fully)) or (covering_all_sets and covering_one_set_fully):
+            raise InvalidPlayerDecisionException("Territory card selection is invalid")
 
     def run(self) -> None:
 
@@ -217,7 +258,17 @@ class Runner:
 
         troops_to_place = self.game.get_player_troop_gain_allowance(player)
 
-        # TODO - implement cards to gain more troops
+        # Let player use territory cards
+
+        while self.game.player_is_able_to_trade_in_territory_cards(player):
+
+            troop_gain = self._run_main_game_player_turn_placement_phase_card_trade_in_single(player)
+
+            if troop_gain is None:
+                break
+            else:
+                assert troop_gain > 0
+                troops_to_place += troop_gain
 
         # Have player make placing location decision
 
@@ -227,12 +278,7 @@ class Runner:
 
         # Check all choices are valid
 
-        if len(placing_territories) != troops_to_place:
-            raise InvalidPlayerDecisionException("Placing incorrect number of troops")
-
-        for territory in placing_territories:
-            if self.game.game_board.get_occupier(territory) != player:
-                raise InvalidPlayerDecisionException()
+        self._check_player_troop_placement_territories(player, troops_to_place, placing_territories)
 
         # Place troops
 
@@ -240,9 +286,66 @@ class Runner:
             self.game.game_board.add_troops(territory, 1)
             self.log(f"{player} adds a troop to {self.world.get_territory_name(territory)}")
 
+    def _run_main_game_player_turn_placement_phase_card_trade_in_single(self, player: int) -> Optional[int]:
+        """Lets the player choose to trade in cards or not once. \
+If the use of the player's cards results in troops being placed in a determined territory, they will be placed during this function.
+
+Returns:
+
+    troops_gained - how many more troops the player should be allowed to place this turn
+"""
+
+        player_controller = self._player_controllers[player]
+
+        cards_to_trade_in = player_controller.decide_trade_in_territory_cards(self.game)
+
+        if cards_to_trade_in is None:
+
+            return None
+
+        else:
+
+            # Trade in cards
+
+            placement_troop_gain = self._run_player_trade_in_territory_cards(player, cards_to_trade_in)
+
+            # Return the output
+
+            return placement_troop_gain
+
+    def _run_player_trade_in_territory_cards(self, player: int, cards_to_trade_in: Set[TerritoryCard]) -> int:
+        """Has the player trade in some territory cards, gain troops in respective territories they own \
+and returns how many troops they can place from the cards. \
+This will also check that the selected cards are valid to trade in"""
+
+        # Checks cards are valid
+
+        self._check_player_territory_card_trade_in(player, cards_to_trade_in)
+
+        # Check if any cards have territories that the player owns
+
+        for territory in map(lambda card: card.territory, cards_to_trade_in):
+
+            if self.game.game_board.get_occupier(territory) == player:
+
+                gained_troops = self.game.territory_card_trade_in_occupied_territory_bonus
+                self.game.game_board.add_troops(territory, gained_troops)
+
+                self.log(f"{self.world.get_territory_name(territory)} gains {gained_troops} troops from player {player} trading in their territory card")
+
+        # Trade in the cards and calculate the gained placement troops
+
+        placement_troop_gain: int = self.game.trade_in_player_territory_cards(player, cards_to_trade_in)
+
+        self.log(f"Player {player} gets {placement_troop_gain} more troops to place for trading in their territory card")
+
+        return placement_troop_gain
+
     def _run_main_game_player_turn_attack_phase(self, player: int) -> None:
 
         player_controller = self._player_controllers[player]
+
+        player_has_been_given_territory_card: bool = False
 
         while (not self.game.player_has_won()) and (attack_action := player_controller.decide_attack_action(self.game)):
 
@@ -315,6 +418,55 @@ with {attack_action.attackers} troops")
                 self.game.game_board.set_occupation(attack_action.to_territory, player, surviving_attackers)
 
                 self.log(f"Player {player} has occupied {self.world.get_territory_name(attack_action.to_territory)} with {surviving_attackers} troops")
+
+                # Award territory card if not already done this turn
+
+                if not player_has_been_given_territory_card:
+
+                    territory_card = self.game.give_player_random_territory_card(player)
+
+                    self.log(f"Player {player} is awarded the territory card {self.world.get_territory_name(territory_card.territory)}-{territory_card.card_class}")
+
+            # Check if defender player is now defeated
+
+            if not self.game.player_is_active(defender):
+
+                self.log(f"Player {player} has been eliminated")
+
+                # Give player the defender's territory cards if they have any
+
+                if self.game.player_has_territory_cards(defender):
+
+                    transferred_cards = self.game.transfer_player_territory_cards_to_other_player(
+                        src_player=defender,
+                        dst_player=player
+                    )
+
+                    self.log(f"Player {player} gained {len(transferred_cards)} cards from eliminating {defender}")
+
+                    # Check if player must use some of their cards
+
+                    if len(self.game.get_player_territory_cards(player)) >= self.game.elimintating_opponent_territory_card_gain_force_trade_in_threshold:
+
+                        # Player is forced to trade in cards until they are below the lower bound
+
+                        while len(self.game.get_player_territory_cards(player)) > self.game.elimintating_opponent_territory_card_gain_force_trade_in_trade_until_bound:
+
+                            cards_to_trade_in = player_controller.decide_forced_trade_in_territory_cards(self.game)
+
+                            troops_to_place = self._run_player_trade_in_territory_cards(player, cards_to_trade_in)
+
+                            placing_territories = list(player_controller.decide_troop_placement_territories(self.game, troops_to_place))
+
+                            # Check selections valid
+
+                            self._check_player_troop_placement_territories(player, troops_to_place, placing_territories)
+
+                            # Place troops
+
+                            for territory in placing_territories:
+                                self.game.game_board.add_troops(territory, 1)
+                                self.log(f"{player} adds a troop to {self.world.get_territory_name(territory)}")
 
     def _run_main_game_player_turn_relocation_phase(self, player: int) -> None:
 
