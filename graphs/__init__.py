@@ -28,11 +28,11 @@ class UndirectedGraphBase:
     def iterate_node_neighbours(self, node: int) -> Iterable[int]:
         pass
 
-    def bfs_find_path(self,
-                      start: int,
-                      stop_condition: Callable[[int], bool],
-                      valid_condition: Optional[Callable[[int], bool]] = None) -> Optional[List[int]]:
-        """Performs a breadth-first search on the graph to find a path to a valid node.
+    def bfs_shortest_path(self,
+                          start: int,
+                          stop_condition: Callable[[int], bool],
+                          valid_condition: Optional[Callable[[int], bool]] = None) -> Optional[List[int]]:
+        """Performs a breadth-first search on the graph to find a shortest path to a valid node.
 
 Parameters:
 

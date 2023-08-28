@@ -107,7 +107,7 @@ _CASES: List[Tuple[int,List[Tuple[int,int]],int,Callable[[int],bool],Callable[[i
 
 def run_test(graph: UndirectedGraphBase, start: int, stop_condition: Callable[[int], bool], valid_condition: Callable[[int], bool], exp_res: bool) -> None:
 
-    out = graph.bfs_find_path(
+    out = graph.bfs_shortest_path(
         start=start,
         stop_condition=stop_condition,
         valid_condition=valid_condition

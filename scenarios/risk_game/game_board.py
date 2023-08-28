@@ -106,7 +106,7 @@ class GameBoard:
 
         occupier = self.get_occupier(territory_a)
 
-        return self._world.graph.bfs_find_path(
+        return self._world.graph.bfs_shortest_path(
             start=territory_a,
             stop_condition=lambda n: n == territory_b,
             valid_condition=lambda n: self.get_occupier(n) == occupier
