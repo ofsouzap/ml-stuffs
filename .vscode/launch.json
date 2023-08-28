@@ -5,6 +5,21 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Risk World Betweenness Centralities",
+            "type": "python",
+            "request": "launch",
+            "module": "examples.risk_game_world_betweenness_centralities",
+            "justMyCode": true
+        },
+        {
             "name": "Basic Risk Game",
             "type": "python",
             "request": "launch",
@@ -18,13 +33,5 @@
             "module": "examples.risk_game.europe_risk_game",
             "justMyCode": true
         },
-        {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        }
     ]
 }
