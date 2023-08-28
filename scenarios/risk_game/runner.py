@@ -22,10 +22,6 @@ class Runner:
         def log(self, message: str):
             pass
 
-    DEFAULT_INITIAL_PLACEMENT_ROUND_COUNT: int = 30
-    DEFAULT_MAX_ATTACKERS: int = 3
-    DEFAULT_MAX_DEFENDERS: int = 2
-
     def __init__(self,
                  world: World,
                  player_controllers: Iterable[PlayerControllerBase],
@@ -35,7 +31,13 @@ class Runner:
                  max_defenders: Optional[int] = None):
 
         self._player_controllers: List[PlayerControllerBase] = list(player_controllers)
-        self._game: Game = Game(world, set(range(len(self._player_controllers))))
+        self._game: Game = Game(
+            world=world,
+            players=set(range(len(self._player_controllers))),
+            initial_placement_round_count=initial_placement_round_count,
+            max_attackers=max_attackers,
+            max_defenders=max_defenders,
+        )
 
         self._running = False
         self._has_run = False
@@ -47,12 +49,6 @@ class Runner:
             self._logger = logger
         else:
             self._logger = Runner.__EmptyLogger()
-
-        # Game Config
-
-        self._initial_placement_round_count: int = initial_placement_round_count or Runner.DEFAULT_INITIAL_PLACEMENT_ROUND_COUNT
-        self._max_attackers: int = max_attackers or Runner.DEFAULT_MAX_ATTACKERS
-        self._max_defenders: int = max_defenders or Runner.DEFAULT_MAX_DEFENDERS
 
     def log(self, *args, **kwargs):
         return self._logger.log(*args, **kwargs)
@@ -123,13 +119,13 @@ class Runner:
             player_order,
             start_player_idx=player_idx,
             start_initial_placement_round_idx=initial_placement_round_idx,
-            initial_placement_round_count=self._initial_placement_round_count
+            initial_placement_round_count=self.game.initial_placement_round_count
         )
 
         # Some checks
 
         assert player_idx == 0
-        assert initial_placement_round_idx == self._initial_placement_round_count
+        assert initial_placement_round_idx == self.game.initial_placement_round_count
 
     def _run_initial_placement_setup_board(self,
                                           player_order: List[int],
@@ -260,7 +256,7 @@ class Runner:
             if attack_action.attackers < 1:
                 raise InvalidPlayerDecisionException("Number of attackers must be positive")
 
-            if attack_action.attackers > self._max_attackers:
+            if attack_action.attackers > self.game.max_attackers:
                 raise InvalidPlayerDecisionException("Number of attackers is greater than the maximum allowed")
 
             if self.game.game_board.get_troop_count(attack_action.from_territory) - attack_action.attackers < 1:
@@ -287,7 +283,7 @@ with {attack_action.attackers} troops")
             if defender_count < 1:
                 raise InvalidPlayerDecisionException("Number of defenders must be positive")
 
-            if defender_count > self._max_defenders:
+            if defender_count > self.game.max_defenders:
                 raise InvalidPlayerDecisionException("Number of defenders is greater than the maximum allowed")
 
             # Do battle

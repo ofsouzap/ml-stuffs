@@ -1,4 +1,4 @@
-from typing import Optional, Set
+from typing import Optional, Set, NamedTuple
 from .world import World
 from .setup_board import SetupBoard
 from .game_board import GameBoard
@@ -15,14 +15,27 @@ class GameNotSetUpException(Exception):
 class Game:
     """A class for all the details of a running game"""
 
+    DEFAULT_INITIAL_PLACEMENT_ROUND_COUNT: int = 30
+    DEFAULT_MAX_ATTACKERS: int = 3
+    DEFAULT_MAX_DEFENDERS: int = 2
+
     def __init__(self,
                  world: World,
-                 players: Set[int]):
+                 players: Set[int],
+                 initial_placement_round_count: Optional[int] = None,
+                 max_attackers: Optional[int] = None,
+                 max_defenders: Optional[int] = None):
 
         self._world = world
         self._players = players
         self._setup_board = SetupBoard(world)
         self._game_board: Optional[GameBoard] = None
+
+        # Game config
+
+        self._initial_placement_round_count: int = initial_placement_round_count or Game.DEFAULT_INITIAL_PLACEMENT_ROUND_COUNT
+        self._max_attackers: int = max_attackers or Game.DEFAULT_MAX_ATTACKERS
+        self._max_defenders: int = max_defenders or Game.DEFAULT_MAX_DEFENDERS
 
     @property
     def players(self) -> Set[int]:
@@ -42,6 +55,18 @@ class Game:
             raise GameNotSetUpException()
         else:
             return self._game_board
+
+    @property
+    def initial_placement_round_count(self) -> int:
+        return self._initial_placement_round_count
+
+    @property
+    def max_attackers(self) -> int:
+        return self._max_attackers
+
+    @property
+    def max_defenders(self) -> int:
+        return self._max_defenders
 
     def generate_game_board(self) -> None:
 

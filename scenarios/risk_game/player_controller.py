@@ -179,7 +179,8 @@ class RandomizedComputerPlayerController(PlayerControllerBase):
                 to_territory = random_choice(list(to_options))
 
                 available_attackers = game.game_board.get_troop_count(from_territory) - 1
-                attackers = randint(1,available_attackers)
+                max_attackers = min(available_attackers, game.max_attackers)
+                attackers = randint(1,max_attackers)
 
                 return AttackAction(from_territory, to_territory, attackers)
 
@@ -190,7 +191,7 @@ class RandomizedComputerPlayerController(PlayerControllerBase):
 
         territory_troops = game.game_board.get_troop_count(attack_action.to_territory)
 
-        return min(2, territory_troops)
+        return min(game.max_defenders, territory_troops)
 
     def decide_troop_relocate(self, game: Game) -> Optional[TroopRelocateAction]:
 
