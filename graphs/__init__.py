@@ -5,9 +5,91 @@ import numpy as np
 import numpy.typing as npt
 
 
-
-class UndirectedGraphBase:
+class UndirectedGraphBase(ABC):
     """Base class for classes representing immutable undirected graphs"""
+
+    def __init__(self,
+                 precalculate_betweenness_centrality: bool):
+
+        self._betweenness_centralities: Optional[Dict[int, float]] = \
+            self.__calculate_betweenness_centralities() if precalculate_betweenness_centrality \
+            else None
+
+        if self._betweenness_centralities is not None:
+            assert set(self.iterate_nodes()) == set(self._betweenness_centralities.keys())
+
+    def __calculate_betweenness_centralities(self) -> Dict[int, float]:
+        """Calculate the betweenness centralities of all the graph's nodes"""
+
+        # Prepare container
+
+        betweenness_centralities: Dict[int, float] = {}
+        for node in self.iterate_nodes():
+            betweenness_centralities[node] = 0.0
+
+        # Iterate through possible starting nodes
+
+        for source in self.iterate_nodes():
+
+            shortest_paths: Dict[int, Tuple[int, List[List[int]]]] = {}
+            shortest_paths[source] = (1, [[source]])
+
+            # Perform BFS to find shortest paths to all nodes from node `source`
+
+            queue: List[Tuple[int, Tuple[int, List[int]]]] = []
+            queue.append((source, (1, [source])))
+
+            while len(queue) > 0:
+
+                node, (node_path_len, node_path) = queue.pop(0)
+
+                for neighbour in self.iterate_node_neighbours(node):
+
+                    new_path = node_path + [neighbour]
+                    new_path_len = node_path_len + 1
+
+                    if neighbour in shortest_paths:
+
+                        if shortest_paths[neighbour][0] == new_path_len:
+                            shortest_paths[neighbour][1].append(new_path)
+                            queue.append((neighbour, (new_path_len, new_path)))
+                        else:
+                            # It should never be that shortest_paths[neighbour][0] > node_path_len since the BFS traversal goes in order of increasing path length
+                            assert shortest_paths[neighbour][0] < new_path_len
+
+                    else:
+                        shortest_paths[neighbour] = (new_path_len, [new_path])
+                        queue.append((neighbour, (new_path_len, new_path)))
+
+            # Add the results of the found computations to the current betweenness centrality values
+
+            for end_node in shortest_paths:
+
+                path_len, paths = shortest_paths[end_node]
+                path_count = len(paths)
+
+                assert all([path_len == len(path) for path in paths])
+
+                if path_len < 3:
+                    continue  # Only need to consider paths with intermediate nodes
+
+                for path in paths:
+
+                    intermediate_nodes = set(path[1:-1])
+
+                    assert len(intermediate_nodes) == path_len-2
+
+                    for node in intermediate_nodes:
+                        betweenness_centralities[node] += 1/path_count
+
+        # Half the betweenness centralities due to the graph being undirected
+
+        for node in betweenness_centralities:
+            betweenness_centralities[node] /= 2
+
+        # Return output
+
+        return betweenness_centralities
 
     @abstractmethod
     def get(self, a: int, b: int) -> bool:
@@ -23,6 +105,18 @@ class UndirectedGraphBase:
         b = int(key[1])
 
         return self.get(a,b)
+
+    def get_betweenness_centrality(self, node: int) -> float:
+        """Gets the betweenness centrality of a node"""
+
+        if self._betweenness_centralities is None:
+            self._betweenness_centralities = self.__calculate_betweenness_centralities()
+
+        return self._betweenness_centralities[node]
+
+    @abstractmethod
+    def iterate_nodes(self) -> Iterable[int]:
+        pass
 
     @abstractmethod
     def iterate_node_neighbours(self, node: int) -> Iterable[int]:
@@ -196,7 +290,8 @@ class ArrayUndirectedGraph(UndirectedGraphBase):
 
     def __init__(self,
                  n: int,
-                 edges: List[Tuple[int, int]]):
+                 edges: List[Tuple[int, int]],
+                 precalculate_betweenness_centrality: bool = False):
 
         self._n = n
 
@@ -210,6 +305,9 @@ class ArrayUndirectedGraph(UndirectedGraphBase):
                 raise ValueError(f"The node {b} doesn't exist in the graph")
             else:
                 self._data[self.__index_of(a,b)] = True
+
+        # Super constructor must be at end so parent is initialised fully for precalculating betweenness centralities
+        super().__init__(precalculate_betweenness_centrality)
 
     def __index_of(self, a: int, b: int) -> int:
 
@@ -232,6 +330,9 @@ class ArrayUndirectedGraph(UndirectedGraphBase):
     def get(self, a: int, b: int) -> bool:
         return self._data[self.__index_of(a,b)]
 
+    def iterate_nodes(self) -> Iterable[int]:
+        return range(self._n)
+
     def iterate_node_neighbours(self, node: int) -> Iterable[int]:
         for other in range(self._n):
             if other == node:
@@ -246,7 +347,8 @@ class AdjacencyListUndirectedGraph(UndirectedGraphBase):
 
     def __init__(self,
                  n: int,
-                 edges: List[Tuple[int, int]]):
+                 edges: List[Tuple[int, int]],
+                 precalculate_betweenness_centrality: bool = False):
 
         self._n = n
         self._data: Dict[int, FrozenSet[int]] = {}
@@ -268,8 +370,14 @@ class AdjacencyListUndirectedGraph(UndirectedGraphBase):
             node_neighbours = frozenset(building_data[node])
             self._data[node] = node_neighbours
 
+        # Super constructor must be at end so parent is initialised fully for precalculating betweenness centralities
+        super().__init__(precalculate_betweenness_centrality)
+
     def get(self, a: int, b: int) -> bool:
         return b in self._data[a]
+
+    def iterate_nodes(self) -> Iterable[int]:
+        return range(self._n)
 
     def iterate_node_neighbours(self, node: int) -> Iterable[int]:
         return self._data[node]
