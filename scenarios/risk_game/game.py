@@ -240,7 +240,10 @@ Returns:
         return troop_gain
 
     def give_player_random_territory_card(self, player: int) -> TerritoryCard:
-        """Gives the player a random new territory card from their deck into their hand and also returns it for reference"""
+        """Gives the player a random new territory card from the deck into their hand and also returns it for reference"""
+
+        assert len(self._territory_card_deck) > 0, "Deck is empty when trying to give player a card"
+        # TODO - have game runner check that deck has enough cards before trying to give a player a card
 
         territory_card = random_choice(list(self._territory_card_deck))
 

@@ -27,8 +27,9 @@ world = World(
 )
 
 player_controllers = [
-    UncheckedConsolePlayerController(0),
-    RandomizedComputerPlayerController(1),
+    # UncheckedConsolePlayerController(),
+    RandomizedComputerPlayerController(),
+    RandomizedComputerPlayerController(),
 ]
 
 logger = PrintLogger()

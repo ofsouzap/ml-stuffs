@@ -24,13 +24,19 @@ class TroopRelocateAction(NamedTuple):
 
 class PlayerControllerBase(ABC):
 
-    def __init__(self,
-                 self_player: int):
-        self._self_player = self_player
+    def __init__(self):
+
+        self._self_player: Optional[int] = None
 
     @property
     def self_player(self) -> int:
-        return self._self_player
+        if self._self_player is not None:
+            return self._self_player
+        else:
+            raise Exception("Self player hasn't been set")
+
+    def set_self_player(self, self_player: int) -> None:
+        self._self_player = self_player
 
     @abstractmethod
     def decide_initial_placing_board_occupy_territory(self, game: Game) -> int:
@@ -184,7 +190,7 @@ class RandomizedComputerPlayerController(PlayerControllerBase):
 
         if has_enough_instances_of_single_class or has_instance_of_all_classes:
 
-            if randint(0, min([len(xs) for xs in options_by_class])) == 0:
+            if randint(0, max([len(xs) for xs in options_by_class])) == 0:
 
                 # Choosing not to trade in any cards
 
@@ -192,9 +198,14 @@ class RandomizedComputerPlayerController(PlayerControllerBase):
 
             else:
 
-                use_instance_of_all_classes: bool = \
-                    not has_enough_instances_of_single_class \
-                    or randint(0,1) == 0
+                use_instance_of_all_classes: bool
+
+                if has_enough_instances_of_single_class != has_instance_of_all_classes:
+                    use_instance_of_all_classes = has_instance_of_all_classes
+                elif has_enough_instances_of_single_class and has_instance_of_all_classes:
+                    use_instance_of_all_classes = randint(0,1) == 0
+                else:
+                    raise Exception("This shouldn't occur")
 
                 if use_instance_of_all_classes:
 
@@ -231,9 +242,14 @@ class RandomizedComputerPlayerController(PlayerControllerBase):
 
         assert has_instance_of_all_classes or has_enough_instances_of_single_class, "Trying to force player to choose to trade in cards when they can't"
 
-        use_instance_of_all_classes: bool = \
-            not has_enough_instances_of_single_class \
-            or randint(0,1) == 0
+        use_instance_of_all_classes: bool
+
+        if has_enough_instances_of_single_class != has_instance_of_all_classes:
+            use_instance_of_all_classes = has_instance_of_all_classes
+        elif has_enough_instances_of_single_class and has_instance_of_all_classes:
+            use_instance_of_all_classes = randint(0,1) == 0
+        else:
+            raise Exception("This shouldn't occur")
 
         if use_instance_of_all_classes:
 

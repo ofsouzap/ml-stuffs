@@ -5,15 +5,15 @@ from scenarios.risk_game.player_controller import RandomizedComputerPlayerContro
 
 class PrintLogger(Runner.LoggerBase):
     def log(self, message: str):
-        print(f"INFO: {message}")
+        pass
 
 
 world = FULL_GAME_WORLD
 
 player_controllers = [
-    RandomizedComputerPlayerController(0),
-    RandomizedComputerPlayerController(1),
-    RandomizedComputerPlayerController(2),
+    RandomizedComputerPlayerController(),
+    RandomizedComputerPlayerController(),
+    RandomizedComputerPlayerController(),
 ]
 
 logger = PrintLogger()

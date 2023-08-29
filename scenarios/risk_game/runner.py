@@ -33,14 +33,18 @@ class Runner:
                  territory_card_class_count: Optional[int] = None):
 
         self._player_controllers: List[PlayerControllerBase] = list(player_controllers)
+        self._players = set(range(len(self._player_controllers)))
         self._game: Game = Game(
             world=world,
-            players=set(range(len(self._player_controllers))),
+            players=self._players,
             initial_placement_round_count=initial_placement_round_count,
             max_attackers=max_attackers,
             max_defenders=max_defenders,
             territory_card_class_count=territory_card_class_count,
         )
+
+        for i, player_controller in enumerate(self._player_controllers):
+            player_controller.set_self_player(i)
 
         self._running = False
         self._has_run = False

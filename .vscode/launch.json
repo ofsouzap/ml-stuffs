@@ -27,10 +27,10 @@
             "justMyCode": true
         },
         {
-            "name": "Europe Risk Game",
+            "name": "Full Risk Game",
             "type": "python",
             "request": "launch",
-            "module": "examples.risk_game.europe_risk_game",
+            "module": "examples.risk_game.full_risk_game",
             "justMyCode": true
         },
     ]
