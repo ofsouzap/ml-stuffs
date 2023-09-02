@@ -47,7 +47,6 @@ class Runner:
             player_controller.set_self_player(i)
 
         self._running = False
-        self._has_run = False
         self._round_idx: int = 0
         self._winner: Optional[int] = None
 
@@ -116,7 +115,7 @@ class Runner:
 
     def run(self) -> None:
 
-        if self._has_run or self._running:
+        if self._running:
             raise Exception("Can't start runner running when it has already run or is still running")
 
         self._running = True
@@ -125,6 +124,7 @@ class Runner:
 
         self._game
         self._round_idx = 0
+        self.game.reset_game()
 
         # Decide player order
 
@@ -143,7 +143,6 @@ class Runner:
         # Once game finished
 
         self._running = False
-        self._has_run = True
 
     def _generate_player_order(self) -> List[int]:
         players = list(range(len(self._player_controllers)))
