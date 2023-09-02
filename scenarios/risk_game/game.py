@@ -39,10 +39,6 @@ class Game:
 
         self._world = world
         self._players = players
-        self._setup_board = SetupBoard(world)
-        self._game_board: Optional[GameBoard] = None
-
-        self._territory_card_trade_in_index: int = 0
 
         # Game config
 
@@ -54,7 +50,20 @@ class Game:
         self._elimintating_opponent_territory_card_gain_force_trade_in_threshold: int = elimintating_opponent_territory_card_gain_force_trade_in_threshold or Game.DEFAULT_ELIMINATING_OPPONENT_TERRITORY_CARD_GAIN_FORCE_TRADE_IN_THRESHOLD
         self._elimintating_opponent_territory_card_gain_force_trade_in_trade_until_bound: int = elimintating_opponent_territory_card_gain_force_trade_in_trade_until_bound or Game.DEFAULT_ELIMINATING_OPPONENT_TERRITORY_CARD_GAIN_FORCE_TRADE_IN_TRADE_UNTIL_BOUND
 
+        # Set up game
+
+        self.reset_game()
+
+    def reset_game(self) -> None:
+
+        # Boards
+
+        self._setup_board = SetupBoard(self.world)
+        self._game_board = None
+
         # Territory card set-up
+
+        self._territory_card_trade_in_index = 0
 
         self._player_territory_cards: Dict[int, Set[TerritoryCard]] = {}
         """The territory cards that each player has"""
@@ -239,11 +248,15 @@ Returns:
 
         return troop_gain
 
+    @property
+    def territory_card_deck_has_cards_available(self) -> bool:
+        """Checks if the territory card deck has any cards available to give to a player"""
+        return len(self._territory_card_deck) > 0
+
     def give_player_random_territory_card(self, player: int) -> TerritoryCard:
         """Gives the player a random new territory card from the deck into their hand and also returns it for reference"""
 
-        assert len(self._territory_card_deck) > 0, "Deck is empty when trying to give player a card"
-        # TODO - have game runner check that deck has enough cards before trying to give a player a card
+        assert self.territory_card_deck_has_cards_available, "Deck is empty when trying to give player a card"
 
         territory_card = random_choice(list(self._territory_card_deck))
 

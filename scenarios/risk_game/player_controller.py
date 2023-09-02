@@ -289,10 +289,8 @@ class RandomizedComputerPlayerController(PlayerControllerBase):
 
             for to_territory in game.world.iterate_territory_neighbours(from_territory):
 
-                if game.game_board.get_occupier(to_territory) == self.self_player:
-                    continue
-
-                options[from_territory].add(to_territory)
+                if game.game_board.get_occupier(to_territory) != self.self_player:
+                    options[from_territory].add(to_territory)
 
         # Choose option
 
@@ -375,6 +373,55 @@ class RandomizedComputerPlayerController(PlayerControllerBase):
                 troops_moved_count = randint(1, from_territory_troops-1)
 
                 return TroopRelocateAction(from_territory, to_territory, troops_moved_count)
+
+
+class AggressiveRandomComputerPlayerContoller(RandomizedComputerPlayerController):
+    """A variation of the random computer player controller that will be more aggressive in order to make simulated games end sooner"""
+
+    def decide_attack_action(self, game: Game) -> Optional[AttackAction]:
+
+        # Find options
+
+        options: DefaultDict[int, Set[int]] = defaultdict(lambda: set())
+
+        for from_territory in game.game_board.get_player_territories(self.self_player):
+
+            if game.game_board.get_troop_count(from_territory) <= 1:
+                continue
+
+            for to_territory in game.world.iterate_territory_neighbours(from_territory):
+
+                if game.game_board.get_occupier(to_territory) != self.self_player:
+                    options[from_territory].add(to_territory)
+
+        # Choose option
+
+        if len(options) == 0:
+
+            # If can't attack
+            return None
+
+        else:
+
+            # Attack if can
+
+            from_territory = random_choice(list(options.keys()))
+
+            to_options = options[from_territory]
+            if len(to_options) > 0:
+
+                to_territory = random_choice(list(to_options))
+
+                available_attackers = game.game_board.get_troop_count(from_territory) - 1
+                max_attackers = min(available_attackers, game.max_attackers)
+
+                return AttackAction(from_territory, to_territory, max_attackers)
+
+            else:
+                return None
+
+    def decide_defender_count(self, game: Game, attack_action: AttackAction) -> int:
+        return 1  # Always defend with the least number of troops possible
 
 
 class UncheckedConsolePlayerController(PlayerControllerBase):

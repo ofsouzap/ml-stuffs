@@ -48,6 +48,7 @@ class Runner:
 
         self._running = False
         self._has_run = False
+        self._round_idx: int = 0
         self._winner: Optional[int] = None
 
         self._logger: Runner.LoggerBase
@@ -71,6 +72,9 @@ class Runner:
     @property
     def winner(self) -> Optional[int]:
         return self._winner
+
+    def get_round_number(self) -> int:
+        return self._round_idx
 
     def _check_player_troop_placement_territories(self, player: int, troops_to_place: int, placing_territories: List[int]) -> None:
 
@@ -116,6 +120,11 @@ class Runner:
             raise Exception("Can't start runner running when it has already run or is still running")
 
         self._running = True
+
+        # Reset game
+
+        self._game
+        self._round_idx = 0
 
         # Decide player order
 
@@ -230,7 +239,7 @@ class Runner:
 
     def _run_main_game(self, player_order: List[int]) -> None:
 
-        round_idx: int = 0
+        self._round_idx: int = 0
         player_idx: int = 0
 
         while not self.game.player_has_won():
@@ -243,7 +252,7 @@ class Runner:
             player_idx += 1
             if player_idx == len(player_order):
                 player_idx = 0
-                round_idx += 1
+                self._round_idx += 1
 
         self._winner = self.game.get_winner_player()
         assert self._winner is not None
@@ -427,9 +436,15 @@ with {attack_action.attackers} troops")
 
                 if not player_has_been_given_territory_card:
 
-                    territory_card = self.game.give_player_random_territory_card(player)
+                    if self.game.territory_card_deck_has_cards_available:
 
-                    self.log(f"Player {player} is awarded the territory card {self.world.get_territory_name(territory_card.territory)}-{territory_card.card_class}")
+                        territory_card = self.game.give_player_random_territory_card(player)
+
+                        self.log(f"Player {player} is awarded the territory card {self.world.get_territory_name(territory_card.territory)}-{territory_card.card_class}")
+
+                    else:
+
+                        self.log(f"(No territory cards are available to give to player {player})")
 
             # Check if defender player is now defeated
 

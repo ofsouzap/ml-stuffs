@@ -1,6 +1,7 @@
+import cProfile
 from scenarios.risk_game.world import World
 from scenarios.risk_game.runner import Runner
-from scenarios.risk_game.player_controller import RandomizedComputerPlayerController, UncheckedConsolePlayerController
+from scenarios.risk_game.player_controller import RandomizedComputerPlayerController, UncheckedConsolePlayerController, AggressiveRandomComputerPlayerContoller
 
 
 class PrintLogger(Runner.LoggerBase):
@@ -27,15 +28,14 @@ world = World(
 )
 
 player_controllers = [
-    # UncheckedConsolePlayerController(),
-    RandomizedComputerPlayerController(),
-    RandomizedComputerPlayerController(),
+    AggressiveRandomComputerPlayerContoller(),
+    AggressiveRandomComputerPlayerContoller(),
 ]
 
 logger = PrintLogger()
 
 runner = Runner(world, player_controllers, logger, initial_placement_round_count=5)
 
-runner.run()
+cProfile.run("runner.game.reset_game(); runner.run()")
 
-logger.log(f"Winner is player {runner.winner}")
+logger.log(f"Winner is player {runner.winner} (end round {runner.get_round_number()+1})")
