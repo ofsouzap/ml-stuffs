@@ -1,5 +1,5 @@
 from typing import List, Tuple, Dict, Iterable, Set
-from graphs import UndirectedGraphBase, ArrayUndirectedGraph
+from graphs import UndirectedGraphBase, AdjacencyListUndirectedGraph
 from bij_map import BijMap
 
 
@@ -66,7 +66,7 @@ class World:
 
         # Create graph
 
-        self._graph: UndirectedGraphBase = ArrayUndirectedGraph(len(self._territory_names), graph_edges)
+        self._graph: UndirectedGraphBase = AdjacencyListUndirectedGraph(len(self._territory_names), graph_edges)
 
         # Read continent troop gains
 
