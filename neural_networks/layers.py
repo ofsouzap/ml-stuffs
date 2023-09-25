@@ -27,7 +27,7 @@ class LayerBase(ABC):
 
     @property
     def learning_rate(self) -> float:
-        return self.learning_rate
+        return self.__learning_rate
 
     @abstractmethod
     def forwards(self, x: npt.NDArray) -> npt.NDArray:
