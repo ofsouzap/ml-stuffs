@@ -1,5 +1,6 @@
 - Finish NNs
-    - Make tests for networks
+    / Make tests for networks
+    - Stochastic learning implementation
     - Create some examples
 - Higher-order NN dense layers (e.g. quadratic, cubic etc)
 - Try implement some parts in C and create Python bindings for them

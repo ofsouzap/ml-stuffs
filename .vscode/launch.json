@@ -33,5 +33,12 @@
             "module": "examples.risk_game.full_risk_game",
             "justMyCode": true
         },
+        {
+            "name": "Simple NN Basic Learning Process",
+            "type": "python",
+            "request": "launch",
+            "module": "examples.neural_networks.simple_nn_basic_learning_process",
+            "justMyCode": true
+        },
     ]
 }
