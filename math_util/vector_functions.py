@@ -10,12 +10,12 @@ class DifferentiableVectorFunction(NamedTuple):
 
 
 relu = DifferentiableVectorFunction(
-    lambda x: np.max(0, x),
+    lambda x: np.maximum(np.zeros_like(x), x),
     lambda x: (x > 0).astype(x.dtype)
 )
 
 
 sigmoid = DifferentiableVectorFunction(
-    lambda x: 1 / (1 + np.exp(-x)),
-    lambda x: np.exp(-x) / np.square(1 + np.exp(-x))
+    lambda x: 1 / (1 + np.exp(-x)),  # σ = 1 / (1 + e^-x)
+    lambda x: np.exp(-x) / np.square(1 + np.exp(-x))  # dσ/dx = e^-x / (1 + e^-x)^2
 )

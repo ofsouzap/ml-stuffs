@@ -6,6 +6,9 @@ from tests.test_util import *
 from neural_networks.layers import DenseLayer
 
 
+DEFAULT_LEARNING_RATE = 1e-3
+
+
 _IDENTITIY_CASES: Iterable[Tuple[int, npt.NDArray]] = [
     (
         2,
@@ -179,7 +182,7 @@ _BACKWARDS_CASES_OUTPUT_GRADS: Iterable[Tuple[npt.NDArray, npt.NDArray, npt.NDAr
 ]
 
 
-def _create(w: npt.NDArray, b: npt.NDArray, learning_rate: float = 1e-3) -> DenseLayer:
+def _create(w: npt.NDArray, b: npt.NDArray, learning_rate: float = DEFAULT_LEARNING_RATE) -> DenseLayer:
     return DenseLayer(
         n=w.shape[0],
         m=w.shape[1],
