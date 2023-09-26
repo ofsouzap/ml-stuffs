@@ -1,0 +1,7 @@
+- Finish NNs
+    - Make tests for networks
+    - Create some examples
+- Higher-order NN dense layers (e.g. quadratic, cubic etc)
+- Try implement some parts in C and create Python bindings for them
+    - For example, NNs
+- CNNs

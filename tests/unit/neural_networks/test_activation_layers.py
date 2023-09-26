@@ -76,7 +76,7 @@ _BACKWARDS_CASES: Iterable[Tuple[ActivationLayer, npt.NDArray, npt.NDArray, npt.
 ]
 
 
-def _calc_auto_exp_forwards(func: Callable[[npt.NDArray], npt.NDArray], inp: npt.NDArray) -> npt.NDArray:
+def _auto_calc_exp_forwards(func: Callable[[npt.NDArray], npt.NDArray], inp: npt.NDArray) -> npt.NDArray:
 
     assert inp.ndim == 1
 
@@ -89,7 +89,7 @@ def _calc_auto_exp_forwards(func: Callable[[npt.NDArray], npt.NDArray], inp: npt
 def test_forwards_cases_auto_calc(layer: ActivationLayer, inp: npt.NDArray):
 
     # Arrange
-    exp = _calc_auto_exp_forwards(layer.func.f, inp)
+    exp = _auto_calc_exp_forwards(layer.func.f, inp)
 
     # Act
     out = layer.forwards(inp)

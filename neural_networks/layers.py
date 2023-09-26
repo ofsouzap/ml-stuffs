@@ -1,8 +1,8 @@
-from typing import Optional
+from typing import Optional, List
 from abc import ABC, abstractmethod
 import numpy as np
 import numpy.typing as npt
-from math_util.vector_functions import DifferentiableVectorFunction, relu, sigmoid
+from math_util.vector_functions import DiffVectorVectorFunction, relu, sigmoid
 
 
 class LayerBase(ABC):
@@ -30,6 +30,13 @@ class LayerBase(ABC):
         return self.__learning_rate
 
     @abstractmethod
+    def __str__(self) -> str:
+        pass
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    @abstractmethod
     def forwards(self, x: npt.NDArray) -> npt.NDArray:
         """Performs forwards-propagation"""
         pass
@@ -53,7 +60,7 @@ Returns:
 
 class ActivationLayer(LayerBase):
 
-    def __init__(self, n: int, learning_rate: float, func: DifferentiableVectorFunction):
+    def __init__(self, n: int, learning_rate: float, func: DiffVectorVectorFunction):
         super().__init__(n, n, learning_rate)
         self._n = n
         self._func = func
@@ -63,7 +70,7 @@ class ActivationLayer(LayerBase):
         return self._n
 
     @property
-    def func(self) -> DifferentiableVectorFunction:
+    def func(self) -> DiffVectorVectorFunction:
         return self._func
 
     def forwards(self, x: npt.NDArray) -> npt.NDArray:
@@ -76,11 +83,15 @@ class ActivationLayer(LayerBase):
 class ReluActivationLayer(ActivationLayer):
     def __init__(self, n: int, learning_rate: float):
         super().__init__(n, learning_rate, relu)
+    def __str__(self) -> str:
+        return f"ReLU ({self.n})"
 
 
 class SigmoidActivationLayer(ActivationLayer):
     def __init__(self, n: int, learning_rate: float):
         super().__init__(n, learning_rate, sigmoid)
+    def __str__(self) -> str:
+        return f"σ ({self.n})"
 
 
 class DenseLayer(LayerBase):
@@ -119,6 +130,17 @@ class DenseLayer(LayerBase):
     def bias(self) -> npt.NDArray:
         """Bias values for the layer"""
         return self._bias
+
+    def __str__(self) -> str:
+        output_form_strs: List[str] = []
+        for j in range(self.output_n):
+            output_form_strs.append(
+                " + ".join(
+                    [f"{self.weights[i,j]}*x_{i}" for i in range(self.input_n)]
+                ) + \
+                f" + {self.bias[j]}"
+            )
+        return " & ".join([f"({s})" for s in output_form_strs])
 
     def forwards(self, x: npt.NDArray) -> npt.NDArray:
         assert x.shape == (self.input_n,), "Input shape invalid"
