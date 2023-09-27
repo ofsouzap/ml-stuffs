@@ -59,7 +59,7 @@ for it_idx in range(it_count):
     for sample_idx in range(sample_count):
         inp = inps[sample_idx]
         exp = exps[sample_idx]
-        nn.learn_single(inp, exp, sum_of_squares_cost)
+        nn.learn_step_single(inp, exp, sum_of_squares_cost)
 
 # Add new cost value
 

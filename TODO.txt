@@ -1,5 +1,13 @@
 - Finish NNs
     / Make tests for networks
+    - Methods allowing multiple simultaneous inputs
+        / Layers
+        - Networks
+    - Tests for "_multi" methods
+        / Dense layer
+        - Activation layers
+        - Networks
+    - Learning method with multiple inputs and expecteds
     - Stochastic learning implementation
     - Create some examples
 - Higher-order NN dense layers (e.g. quadratic, cubic etc)

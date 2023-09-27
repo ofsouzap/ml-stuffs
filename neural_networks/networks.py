@@ -1,4 +1,5 @@
 from typing import Iterable, Iterator, List, Optional
+import numpy as np
 import numpy.typing as npt
 from math_util.vector_functions import NNCostFunction
 from .layers import LayerBase
@@ -95,7 +96,7 @@ Returns:
         yield curr.copy()
 
         for layer in self._layers:
-            curr = layer.forwards(curr)
+            curr = layer.forwards_single(curr)
             yield curr.copy()
 
     def forwards(self, x: npt.NDArray) -> npt.NDArray:
@@ -152,11 +153,11 @@ The final value gives the gradients of the cost function w.r.t. the inputs to th
             reversed(xs[:-1]),  # Don't include last value as it is the output of the entire network
         ):
 
-            curr_grad = layer.backwards(x, curr_grad)
+            curr_grad = layer.backwards_single(x, curr_grad)
             yield curr_grad.copy()
 
-    def learn_single(self, x: npt.NDArray, exp: npt.NDArray, cost_func: NNCostFunction) -> npt.NDArray:
-        """Performs a single iteration of forwards propagation \
+    def learn_step_single(self, x: npt.NDArray, exp: npt.NDArray, cost_func: NNCostFunction) -> npt.NDArray:
+        """Performs a single iteration of forwards propagation using a single sample \
 and then a single iteration of backwards propagation \
 using the results to reduce the value of the cost function
 

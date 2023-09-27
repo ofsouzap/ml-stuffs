@@ -92,7 +92,7 @@ def test_forwards_cases_auto_calc(layer: ActivationLayer, inp: npt.NDArray):
     exp = _auto_calc_exp_forwards(layer.func.f, inp)
 
     # Act
-    out = layer.forwards(inp)
+    out = layer.forwards_single(inp)
 
     # Assert
     assert_allclose(out, exp)
@@ -104,7 +104,7 @@ def test_backwards_cases(layer: ActivationLayer, x: npt.NDArray, grad_wrt_y: npt
     assert x.shape == grad_wrt_y.shape == exp.shape
 
     # Act
-    out = layer.backwards(x, grad_wrt_y)
+    out = layer.backwards_single(x, grad_wrt_y)
 
     # Assert
     assert_allclose(out, exp, atol=1e-4)

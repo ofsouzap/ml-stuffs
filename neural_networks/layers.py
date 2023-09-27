@@ -36,24 +36,32 @@ class LayerBase(ABC):
     def __repr__(self) -> str:
         return str(self)
 
-    @abstractmethod
-    def forwards(self, x: npt.NDArray) -> npt.NDArray:
-        """Performs forwards-propagation"""
-        pass
+    def forwards_single(self, x: npt.NDArray) -> npt.NDArray:
+        """Performs forwards-propagation on a single input"""
+        return self.forwards_multi(x[np.newaxis,:])[0]
 
     @abstractmethod
-    def backwards(self, x: npt.NDArray, grad_wrt_y: npt.NDArray) -> npt.NDArray:
-        """Performs backwards-propagation, altering the parameters of the layer according to the learning rate.
+    def forwards_multi(self, xs: npt.NDArray) -> npt.NDArray:
+        """Performs forwards-propagation on multiple inputs"""
+        pass
+
+    def backwards_single(self, x: npt.NDArray, grad_wrt_y: npt.NDArray) -> npt.NDArray:
+        """Performs backwards-propagation but only on a single input"""
+        return self.backwards_multi(x[np.newaxis,:], grad_wrt_y[np.newaxis,:])[0]
+
+    @abstractmethod
+    def backwards_multi(self, x: npt.NDArray, grads_wrt_ys: npt.NDArray) -> npt.NDArray:
+        """Performs backwards-propagation on multiple inputs, altering the parameters of the layer according to the learning rate.
 
 Parameters:
 
-    x - the inputs that were passed to the layer
+    xs - the input vectors that were passed to the layer
 
-    grad_wrt_y - the gradient vector of the cost function with respect to the outputs of the function.
+    grads_wrt_ys - the gradient vectors of the cost function with respect to the outputs of the function.
 
 Returns:
 
-    grad_wrt_x - the gradient vector of the cost function with respect to the inputs of the function.
+    grad_wrt_xs - the gradient vectors of the cost function with respect to the inputs of the function.
 """
         pass
 
@@ -73,11 +81,14 @@ class ActivationLayer(LayerBase):
     def func(self) -> DiffVectorVectorFunction:
         return self._func
 
-    def forwards(self, x: npt.NDArray) -> npt.NDArray:
-        return self.func.f(x)
+    def forwards_multi(self, xs: npt.NDArray) -> npt.NDArray:
+        assert xs.ndim == 2, "Input must be two-dimensional"
+        return self.func.f_multi(xs)
 
-    def backwards(self, x: npt.NDArray, grad_wrt_y: npt.NDArray) -> npt.NDArray:
-        return np.multiply(grad_wrt_y, self.func.grad_f(x))
+    def backwards_multi(self, xs: npt.NDArray, grads_wrt_ys: npt.NDArray) -> npt.NDArray:
+        assert xs.ndim == grads_wrt_ys.ndim == 2, "Inputs must be two-dimensional"
+        assert xs.shape[0] == grads_wrt_ys.shape[0], "Inputs must have same number of values"
+        return grads_wrt_ys * self.func.grad_f_multi(xs)
 
 
 class ReluActivationLayer(ActivationLayer):
@@ -142,49 +153,69 @@ class DenseLayer(LayerBase):
             )
         return " & ".join([f"({s})" for s in output_form_strs])
 
-    def forwards(self, x: npt.NDArray) -> npt.NDArray:
-        assert x.shape == (self.input_n,), "Input shape invalid"
-        return (x @ self.weights) + self.bias
+    def forwards_multi(self, xs: npt.NDArray) -> npt.NDArray:
+        assert xs.ndim == 2, "Input must be two-dimensional"
 
-    def backwards(self, x: npt.NDArray, grad_wrt_y: npt.NDArray) -> npt.NDArray:
+        mat_xs = xs[:,np.newaxis,:]
+        mat_result: npt.NDArray = np.matmul(mat_xs, self.weights) + self.bias
+        result = mat_result[:,0,:]  # The results of the matrix multiplication was an array of row vectors, this just takes each row vector as a 1D array
 
-        assert x.shape == (self.input_n,), "Invalid x shape"
-        assert grad_wrt_y.shape == (self.output_n,), "Invalid grad_wrt_y shape"
+        assert result.ndim == 2
+        assert result.shape[0] == xs.shape[0]
+
+        return result
+
+    def backwards_multi(self, xs: npt.NDArray, grads_wrt_ys: npt.NDArray) -> npt.NDArray:
+        assert xs.ndim == grads_wrt_ys.ndim == 2, "Inputs must be two-dimensional"
+        assert xs.shape[0] == grads_wrt_ys.shape[0], "Inputs must have same number of values"
+        assert xs.shape[1] == self.input_n, "xs should have same number of values as layer has inputs"
+        assert grads_wrt_ys.shape[1] == self.output_n, "grads_wrt_ys should have same number of values as layer has outputs"
+
+        # Calculate gradients w.r.t. inputs (i.e. ∂ cost / ∂ x) before changing parameter values
+
+        grads_wrt_xs: npt.NDArray = np.sum(grads_wrt_ys[:,np.newaxis,:] * self.weights[np.newaxis,:,:], axis=2)
+        """∂ cost_i / ∂ x_j = Σ_k ( ∂ cost_i / ∂ y_k ) * W_jk"""
 
         # Calculate gradients w.r.t. parameters
 
-        grad_wrt_weights = x[:,np.newaxis] * grad_wrt_y[np.newaxis,:]
-        """∂ cost / ∂ W_ij = x_i * ∂ cost / ∂ y_j"""
+        grads_wrt_weights = xs[:,:,np.newaxis] * grads_wrt_ys[:,np.newaxis,:]
+        """∂ cost_i / ∂ W_jk = x_j * ∂ cost_i / ∂ y_k"""
 
-        grad_wrt_biases = grad_wrt_y.copy()
-        """∂ cost / ∂ b_i = ∂ cost / ∂ y_i"""
+        grads_wrt_biases = grads_wrt_ys.copy()
+        """∂ cost_i / ∂ b_j = ∂ cost_i / ∂ y_j"""
 
         # Apply gradient descent
 
-        self.add_weights(-1 * self.learning_rate * grad_wrt_weights)
-        self.add_biases(-1 * self.learning_rate * grad_wrt_biases)
+        self._add_weights_multi(-1 * self.learning_rate * grads_wrt_weights)
+        self._add_biases_multi(-1 * self.learning_rate * grads_wrt_biases)
 
-        # Calculate gradients w.r.t. inputs (i.e. ∂ cost / ∂ x)
+        # Check output
 
-        grad_wrt_x = np.sum(grad_wrt_weights, axis=1)
-        """∂ cost / ∂ x_i = Σ_j ( ∂ cost / ∂ W_ij )"""
+        assert grads_wrt_xs.ndim == 2
+        assert grads_wrt_xs.shape[0] == xs.shape[0]
+        assert grads_wrt_xs.shape[1] == xs.shape[1]
 
-        return grad_wrt_x
+        # Return output
+
+        return grads_wrt_xs
 
     def set_weights(self, weights: npt.NDArray) -> None:
         assert weights.shape == (self.input_n,self.output_n), "Invalid weight matrix shape"
         self._weights = weights
 
-    def add_weights(self, add_weights: npt.NDArray) -> None:
-        """Adds the specified amount to the weights"""
-        assert add_weights.shape == self.weights.shape, "Invalid add_weights shape"
-        self._weights += add_weights
+    def _add_weights_multi(self, add_weights: npt.NDArray) -> None:
+        """Adds the specified amounts to the weights"""
+        assert add_weights.ndim == 3, "Input must be three-dimensional"
+        assert add_weights.shape[1] == self.weights.shape[0], "Incorrect add weights shape"
+        assert add_weights.shape[2] == self.weights.shape[1], "Incorrect add weights shape"
+        self._weights += np.sum(add_weights, axis=0)
 
     def set_bias(self, bias: npt.NDArray) -> None:
         assert bias.shape == (self.output_n,), "Invalid bias array shape"
         self._bias = bias
 
-    def add_biases(self, add_biases: npt.NDArray) -> None:
-        """Adds the specified amount to the biases"""
-        assert add_biases.shape == self.bias.shape, "Invalid add_biases shape"
-        self._bias += add_biases
+    def _add_biases_multi(self, add_biases: npt.NDArray) -> None:
+        """Adds the specified amounts to the biases"""
+        assert add_biases.ndim == 2, "Input must be two-dimensional"
+        assert add_biases.shape[1] == self.bias.shape[0], "Incorrect number of bias values"
+        self._bias += np.sum(add_biases, axis=0)

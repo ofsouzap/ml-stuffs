@@ -152,7 +152,7 @@ _LEARN_PROGRESS_CASE_GENS: Iterable[Callable[[int, int], Tuple[npt.NDArray, npt.
 ]
 
 
-_LEARN_PROGRESS_CASES = _cross_case_gens_with_networks(_LEARN_PROGRESS_CASE_GENS, _SAMPLE_NETWORK_GENS)
+_LEARN_PROGRESS_SINGLE_CASES = _cross_case_gens_with_networks(_LEARN_PROGRESS_CASE_GENS, _SAMPLE_NETWORK_GENS)
 
 
 def _auto_calc_exp_forwards(network: Network, inp: npt.NDArray) -> npt.NDArray:
@@ -160,7 +160,7 @@ def _auto_calc_exp_forwards(network: Network, inp: npt.NDArray) -> npt.NDArray:
 
     curr = inp.copy()
     for layer in network.layers:
-        curr = layer.forwards(curr)
+        curr = layer.forwards_single(curr)
 
     return curr
 
@@ -188,15 +188,15 @@ def test_forwards_manual_calc(network: Network, inp: npt.NDArray, exp: npt.NDArr
     assert_allclose(out, exp)
 
 
-@pytest.mark.parametrize(["network", "inp", "net_exp", "cost_func", "iteration_count"], _LEARN_PROGRESS_CASES)
-def test_learn_progress(network: Network, inp: npt.NDArray, net_exp: npt.NDArray, cost_func: NNCostFunction, iteration_count: int):
+@pytest.mark.parametrize(["network", "inp", "net_exp", "cost_func", "iteration_count"], _LEARN_PROGRESS_SINGLE_CASES)
+def test_learn_progress_single(network: Network, inp: npt.NDArray, net_exp: npt.NDArray, cost_func: NNCostFunction, iteration_count: int):
 
     # Arrange
     orig_cost = network.calculate_cost(inp, net_exp, cost_func)
 
     # Act
     for _ in range(iteration_count):
-        network.learn_single(inp, net_exp, cost_func)
+        network.learn_step_single(inp, net_exp, cost_func)
     new_cost = network.calculate_cost(inp, net_exp, cost_func)
 
     # Assert
