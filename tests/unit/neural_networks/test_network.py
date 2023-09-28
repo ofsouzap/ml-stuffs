@@ -239,6 +239,81 @@ _LEARN_PROGRESS_SINGLE_CASES = _cross_case_gens_with_networks(_LEARN_PROGRESS_SI
 _LEARN_PROGRESS_MULTI_CASES = _cross_case_gens_with_networks(_LEARN_PROGRESS_MULTI_CASE_GENS, _SAMPLE_NETWORK_GENS)
 
 
+_LEARN_STEP_OUTPUT_SINGLE_CASES: Iterable[Tuple[str, Tuple[Network, npt.NDArray, npt.NDArray, NNCostFunction, npt.NDArray]]] = [
+    (
+        "W002",
+        (
+            Network([
+                DenseLayer(
+                    2, 4, _DEFAULT_LEARNING_RATE,
+                    np.array([
+                        [ 1, 0, 1, -1 ],
+                        [ 0, 1, -1, 1 ],
+                    ], dtype=np.float64),
+                    np.array([ 0, 0, 0, 0 ], dtype=np.float64),
+                ),
+                DenseLayer(
+                    4, 1, _DEFAULT_LEARNING_RATE,
+                    np.array([
+                        [ 1 ],
+                        [ -2 ],
+                        [ -2 ],
+                        [ 1 ],
+                    ], dtype=np.float64),
+                    np.array([ 2 ], dtype=np.float64),
+                ),
+            ]),
+            np.array([ 1, -0.5 ], dtype=np.float64),
+            np.array([ 2.5 ], dtype=np.float64),
+            sum_of_squares_cost,
+            np.array([ 12, -6 ], dtype=np.float64),
+        ),
+    ),
+]
+
+
+_LEARN_STEP_OUTPUT_MULTI_CASES: Iterable[Tuple[str, Tuple[Network, npt.NDArray, npt.NDArray, NNCostFunction, npt.NDArray]]] = [
+    (
+        "W002",
+        (
+            Network([
+                DenseLayer(
+                    2, 4, _DEFAULT_LEARNING_RATE,
+                    np.array([
+                        [ 1, 0, 1, -1 ],
+                        [ 0, 1, -1, 1 ],
+                    ], dtype=np.float64),
+                    np.array([ 0, 0, 0, 0 ], dtype=np.float64),
+                ),
+                DenseLayer(
+                    4, 1, _DEFAULT_LEARNING_RATE,
+                    np.array([
+                        [ 1 ],
+                        [ -2 ],
+                        [ -2 ],
+                        [ 1 ],
+                    ], dtype=np.float64),
+                    np.array([ 2 ], dtype=np.float64),
+                ),
+            ]),
+            np.array([
+                [ 1, -0.5 ],
+                [ 0, 0 ],
+            ], dtype=np.float64),
+            np.array([
+                [ 2.5 ],
+                [ -2.5 ],
+            ], dtype=np.float64),
+            sum_of_squares_cost,
+            np.array([
+                [ 12, -6 ],
+                [ -18, 9 ],
+            ], dtype=np.float64),
+        ),
+    ),
+]
+
+
 def _auto_calc_exp_forwards_single(network: Network, inp: npt.NDArray) -> npt.NDArray:
     assert inp.ndim == 1
 
@@ -341,3 +416,34 @@ def test_learn_progress_multi(network: Network, inps: npt.NDArray, net_exps: npt
 
     # Assert
     assert avg_new_cost < avg_orig_cost, "Average cost hasn't been reduced"
+
+
+@pytest.mark.parametrize(
+    ["network", "inp", "net_exp", "cost_func", "exp"],
+    [x for _,x in _LEARN_STEP_OUTPUT_SINGLE_CASES],
+    ids=[name for name,_ in _LEARN_STEP_OUTPUT_SINGLE_CASES],
+)
+def test_learn_step_output_single(network: Network, inp: npt.NDArray, net_exp: npt.NDArray, cost_func: NNCostFunction, exp: npt.NDArray):
+    assert inp.ndim == net_exp.ndim == exp.ndim == 1
+
+    # Act
+    grad_wrt_x = network.learn_step_single(inp, net_exp, cost_func)
+
+    # Assert
+    assert_allclose(grad_wrt_x, exp)
+
+
+@pytest.mark.parametrize(
+    ["network", "inps", "net_exps", "cost_func", "exps"],
+    [x for _,x in _LEARN_STEP_OUTPUT_MULTI_CASES],
+    ids=[name for name,_ in _LEARN_STEP_OUTPUT_MULTI_CASES],
+)
+def test_learn_step_output_multi(network: Network, inps: npt.NDArray, net_exps: npt.NDArray, cost_func: NNCostFunction, exps: npt.NDArray):
+    assert inps.ndim == net_exps.ndim == exps.ndim == 2
+    assert inps.shape[0] == net_exps.shape[0] == exps.shape[0]
+
+    # Act
+    grads_wrt_xs = network.learn_step_multi(inps, net_exps, cost_func)
+
+    # Assert
+    assert_allclose(grads_wrt_xs, exps)

@@ -1,6 +1,6 @@
 - Finish NNs
     / Make tests for networks
-    - Methods allowing multiple simultaneous inputs
+    / Methods allowing multiple simultaneous inputs
         / Layers
         / Networks
             / Forwards functions
@@ -12,7 +12,7 @@
             / Forwards
             - Full forwards (single and multi)
             / Learn progress made
-            - Learn output values
+            / Learn output values
     / Learning method with multiple inputs and expecteds (probably made as part of the aboves)
     - Stochastic learning implementation
     - Create some examples

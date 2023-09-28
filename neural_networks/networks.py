@@ -214,7 +214,7 @@ Returns:
             x[np.newaxis,:],
             exp[np.newaxis,:],
             cost_func
-        )
+        )[0]
 
     def learn_step_multi(self, xs: npt.NDArray, exps: npt.NDArray, cost_func: NNCostFunction) -> npt.NDArray:
         """Performs a single iteration of forwards propagation using multiple sample input vectors \
