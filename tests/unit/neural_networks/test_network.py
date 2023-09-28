@@ -1,4 +1,4 @@
-from typing import Iterable, Tuple, Callable
+from typing import Iterable, Tuple, Callable, List
 import pytest
 import numpy as np
 import numpy.typing as npt
@@ -161,6 +161,50 @@ _FORWARDS_MANUAL_CALC_MULTI_CASES: Iterable[Tuple[Network, npt.NDArray, npt.NDAr
             [ 0.0 ],
             [ 6.0 ],
         ], dtype=np.float64),
+    ),
+]
+
+
+_FULL_FORWARDS_MANUAL_CALC_MULTI_CASES: Iterable[Tuple[Network, npt.NDArray, List[npt.NDArray]]] = [
+    (
+        Network([
+            DenseLayer(
+                2, 4, _DEFAULT_LEARNING_RATE,
+                np.array([
+                    [ 1, 0, 1, -1 ],
+                    [ 0, 1, -1, 1 ],
+                ], dtype=np.float64),
+                np.array([ 0, 0, 0, 0 ], dtype=np.float64),
+            ),
+            DenseLayer(
+                4, 1, _DEFAULT_LEARNING_RATE,
+                np.array([
+                    [ 1 ],
+                    [ -2 ],
+                    [ -2 ],
+                    [ 1 ],
+                ], dtype=np.float64),
+                np.array([ 2 ], dtype=np.float64),
+            ),
+        ]),
+        np.array([
+            [ 1, -0.5 ],
+            [ 0, 0 ],
+        ], dtype=np.float64),
+        [
+            np.array([
+                [ 1, -0.5 ],
+                [ 0, 0 ],
+            ], dtype=np.float64),
+            np.array([
+                [ 1, -0.5, 1.5, -1.5 ],
+                [ 0, 0, 0, 0 ],
+            ], dtype=np.float64),
+            np.array([
+                [ -0.5 ],
+                [ 2 ],
+            ], dtype=np.float64),
+        ]
     ),
 ]
 
@@ -378,6 +422,20 @@ def test_forwards_manual_calc_multi(network: Network, inps: npt.NDArray, exps: n
 
     # Assert
     assert_allclose(outs, exps)
+
+
+@pytest.mark.parametrize(["network", "inps", "exp_seqs"], _FULL_FORWARDS_MANUAL_CALC_MULTI_CASES)
+def test_full_forwards_manual_calc_multi(network: Network, inps: npt.NDArray, exp_seqs: List[npt.NDArray]):
+    assert inps.ndim == 2
+    assert all(map(lambda x: x.ndim == 2, exp_seqs))
+
+    # Act
+    out_seqs = list(network.full_forwards_multi(inps))
+
+    # Assert
+    assert len(out_seqs) == len(exp_seqs)
+    for i in range(len(out_seqs)):
+        assert_allclose(out_seqs[i], exp_seqs[i])
 
 
 @pytest.mark.parametrize(["network", "inp", "net_exp", "cost_func", "iteration_count"], _LEARN_PROGRESS_SINGLE_CASES)

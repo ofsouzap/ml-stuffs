@@ -5,12 +5,12 @@
         / Networks
             / Forwards functions
             / Backwards functions
-    - Tests for "_multi" methods
+    / Tests for "_multi" methods
         / Dense layer
         / Activation layers
-        - Networks
+        / Networks
             / Forwards
-            - Full forwards (single and multi)
+            / Full forwards
             / Learn progress made
             / Learn output values
     / Learning method with multiple inputs and expecteds (probably made as part of the aboves)
