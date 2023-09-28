@@ -42,32 +42,20 @@ exps = np.where(
 
 # Prepare cost results
 
-avg_costs = np.zeros(shape=(it_count+1,), dtype=np.float64)
+avg_costs = []
 
-# Perform iterations
-
-for it_idx in range(it_count):
-
-    # Add new cost value
-
-    costs = [nn.calculate_cost_single(inps[i], exps[i], sum_of_squares_cost) for i in range(sample_count)]
-    avg_cost = sum(costs) / len(costs)
-    avg_costs[it_idx] = avg_cost
-
-    # Perform learning iterations
-
-    for sample_idx in range(sample_count):
-        inp = inps[sample_idx]
-        exp = exps[sample_idx]
-        nn.learn_step_single(inp, exp, sum_of_squares_cost)
-
-# Add new cost value
-
-costs = [nn.calculate_cost_single(inps[i], exps[i], sum_of_squares_cost) for i in range(sample_count)]
-avg_cost = sum(costs) / len(costs)
-avg_costs[-1] = avg_cost
+for i, costs in enumerate(nn.learn_stochastic(
+    xs=inps,
+    exps=exps,
+    cost_func=sum_of_squares_cost,
+    sample_size=inps.shape[0]//2,
+    avg_cost_threshold=0.01,
+)):
+    avg_costs.append(np.mean(costs))
 
 # Plot results
+
+avg_costs = np.array(avg_costs)
 
 plt.plot(avg_costs[1:])
 plt.show(block=True)

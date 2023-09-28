@@ -14,7 +14,8 @@
             / Learn progress made
             / Learn output values
     / Learning method with multiple inputs and expecteds (probably made as part of the aboves)
-    - Stochastic learning implementation
+    / Stochastic learning implementation
+    - Tests for stochastic learning implementation
     - Create some examples
 - Higher-order NN dense layers (e.g. quadratic, cubic etc)
 - Try implement some parts in C and create Python bindings for them

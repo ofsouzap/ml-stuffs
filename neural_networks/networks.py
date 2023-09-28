@@ -1,4 +1,4 @@
-from typing import Iterable, Iterator, List, Optional
+from typing import Iterable, Iterator, List, Optional, Callable
 import numpy as np
 import numpy.typing as npt
 from math_util.vector_functions import NNCostFunction
@@ -255,3 +255,178 @@ Returns:
         *_, grad_wrt_x = self.__full_backwards_multi(seqs, grads_wrt_ys)
 
         return grad_wrt_x
+
+    def learn_step_stochastic(self,
+                              xs: npt.NDArray,
+                              exps: npt.NDArray,
+                              cost_func: NNCostFunction,
+                              sample_size: int,
+                              rng: Optional[np.random.Generator] = None) -> npt.NDArray:
+        """Performs a single iteration of stochastic gradient descent learning algorithm to reduce the value of the cost function
+
+Parameters:
+
+    xs - the input vectors to provide for the forwards propagation
+
+    exps - the expected output vectors for the given input vectors
+
+    cost_func - the cost function to use
+
+    sample_size - the number of the samples that should be used. The samples actually used are randomly selected
+
+    rng (optional) - the RNG to use. If not provided or None then a new one is created
+
+Returns:
+
+    grads_wrt_xs - the calculated rate of change of the cost function w.r.t each input value (i.e. ∂ cost / ∂ x)
+"""
+
+        if not self.has_layers:
+            raise EmptyNetworkException()
+
+        assert xs.ndim == exps.ndim == 2, "Input values arrays and expected output values array must be two-dimensional"
+        assert xs.shape[0] == exps.shape[0], "Input and expected output values arrays must have same number of vectors"
+        assert xs.shape[1] == self.input_n, "Input vectors must have same number of elements as this network has inputs"
+        assert exps.shape[1] == self.output_n, "Expected output vectors must have same number of elements as this network has outputs"
+
+        if rng is None:
+            rng = np.random.default_rng()
+
+        selected_idxs = rng.integers(
+            low=0,
+            high=xs.shape[0],
+            size=sample_size,
+        )
+
+        return self.learn_step_multi(
+            xs[selected_idxs],
+            exps[selected_idxs],
+            cost_func,
+        )
+
+    def learn_stochastic(self,
+                              xs: npt.NDArray,
+                              exps: npt.NDArray,
+                              cost_func: NNCostFunction,
+                              sample_size: int,
+                              iteration_count: Optional[int] = None,
+                              avg_cost_threshold: Optional[float] = None,
+                              min_cost_threshold: Optional[float] = None,
+                              max_cost_threshold: Optional[float] = None,
+                              provide_cost_output: bool = True,
+                              rng: Optional[np.random.Generator] = None) -> Iterator[npt.NDArray]:
+        """Performs multiple iterations of stochastic gradient descent learning algorithm to reduce the value of the cost function
+
+Parameters:
+
+    xs - the input vectors to provide for the forwards propagation
+
+    exps - the expected output vectors for the given input vectors
+
+    cost_func - the cost function to use
+
+    sample_size - the number of the samples that should be used. The samples actually used are randomly selected
+
+    iteration_count - (see "Termination" below)
+
+    avg_cost_threshold - (see "Termination" below)
+
+    min_cost_threshold - (see "Termination" below)
+
+    max_cost_threshold - (see "Termination" below)
+
+    provide_cost_output (default True) - whether to calculate and return the costs of the network after each step
+
+    rng (optional) - the RNG to use. If not provided or None then a new one is created
+
+Returns:
+
+    costs_it - an iterator of the calculated cost values for every input after each step of the cycle. \
+If provide_cost_output is False, however, all values yielded will be empty arrays.
+
+Termination:
+
+    So that the learning cycle can be terminated, at least one of the termination parameters must be provided. \
+This will then determine when the learning stops. \
+When any one of the conditions is fulfilled (if one isn't provided then it isn't considered), the learning cycle is terminated at the end of it's step.
+
+    iteration_count is a positive integer determining the maximum number of learning steps to perform.
+
+    avg_cost_threshold is a real value. If the average cost for each input vector is below this then the cycle is terminated.
+
+    min_cost_threshold is a real value. If the least-positive cost for each input vector is below this then the cycle is terminated.
+
+    max_cost_threshold is a real value. If the greatest-positive cost for each input vector is below this then the cycle is terminated.
+"""
+
+        # Checks
+
+        if not self.has_layers:
+            raise EmptyNetworkException()
+
+        assert xs.ndim == exps.ndim == 2, "Input values arrays and expected output values array must be two-dimensional"
+        assert xs.shape[0] == exps.shape[0], "Input and expected output values arrays must have same number of vectors"
+        assert xs.shape[1] == self.input_n, "Input vectors must have same number of elements as this network has inputs"
+        assert exps.shape[1] == self.output_n, "Expected output vectors must have same number of elements as this network has outputs"
+
+        # Process parameters
+
+        if rng is None:
+            rng = np.random.default_rng()
+
+        iteration_count_check: Callable = (lambda it_idx: it_idx >= iteration_count) if iteration_count is not None else (lambda *_: False)
+        avg_cost_check: Callable = (lambda costs: np.mean(costs) <= avg_cost_threshold) if avg_cost_threshold is not None else (lambda *_: False)
+        min_cost_check: Callable = (lambda costs: np.min(costs) <= min_cost_threshold) if min_cost_threshold is not None else (lambda *_: False)
+        max_cost_check: Callable = (lambda costs: np.max(costs) <= max_cost_threshold) if max_cost_threshold is not None else (lambda *_: False)
+
+        check_costs: bool = (avg_cost_threshold is not None) or (min_cost_threshold is not None) or (max_cost_threshold is not None)
+        """Whether to bother calculating and then checking the costs for termination conditions or not"""
+
+        costs_check = lambda costs: iteration_count_check(costs) \
+            or avg_cost_check(costs) \
+            or min_cost_check(costs) \
+            or max_cost_check(costs)
+        """A function to check if the cost values mean that the cycle should be terminated"""
+
+        # Run cycle
+
+        iteration_idx = 0
+
+        while True:
+
+            # Perform step
+
+            self.learn_step_stochastic(
+                xs=xs,
+                exps=exps,
+                cost_func=cost_func,
+                sample_size=sample_size,
+                rng=rng,
+            )
+
+            costs: Optional[npt.NDArray]
+
+            if check_costs or provide_cost_output:
+                costs = self.calculate_cost_multi(
+                    xs,
+                    exps,
+                    cost_func,
+                )
+            else:
+                costs = np.empty(shape=(0,), dtype=xs.dtype)
+
+            # Yield output
+
+            yield costs
+
+            # Termination check
+
+            if iteration_count_check(iteration_idx):
+                break
+
+            if check_costs:
+
+                assert costs is not None
+
+                if costs_check(costs):
+                    break
