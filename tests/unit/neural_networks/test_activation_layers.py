@@ -16,7 +16,7 @@ _LAYER_GENS: Iterable[Callable[[int, float], ActivationLayer]] = [
 ]
 
 
-_FORWARDS_CASES_INPS: Iterable[Tuple[npt.NDArray]] = [
+_FORWARDS_CASES_INPS_SINGLE: Iterable[Tuple[npt.NDArray]] = [
     (
         np.array([ 1, 1, 1 ], dtype=np.float64),
     ),
@@ -32,14 +32,42 @@ _FORWARDS_CASES_INPS: Iterable[Tuple[npt.NDArray]] = [
 ]
 
 
+_FORWARDS_CASES_INPS_MULTI: Iterable[Tuple[npt.NDArray]] = [
+    (
+        np.array([
+            [ 1, 1, 1 ],
+            [ 10, -1, 3 ],
+        ], dtype=np.float64),
+    ),
+    (
+        np.array([
+            [ 1, -6 ],
+        ], dtype=np.float64),
+    ),
+    (
+        np.array([
+            [ -1.0, 1.24, 0.4 ],
+            [ 0, 0, 1 ],
+            [ 12, 124, -9.04 ],
+        ], dtype=np.float64),
+    ),
+    (
+        np.zeros(shape=(10,3), dtype=np.float64),
+    ),
+]
+
+
 def _cross_forward_cases_with_layers(layer_gens: Iterable[Callable[[int, float], ActivationLayer]], cases: Iterable[Tuple[npt.NDArray]]) -> Iterable[Tuple[ActivationLayer, npt.NDArray]]:
+    out = []
     for case in cases:
         for layer_gen in layer_gens:
             inp = case[0]
-            yield (layer_gen(inp.shape[0], DEFAULT_LEARNING_RATE), inp)
+            out.append((layer_gen(inp.shape[0], DEFAULT_LEARNING_RATE), inp))
+    return out
 
 
-_FORWARDS_CASES_AUTO_CALC = _cross_forward_cases_with_layers(_LAYER_GENS, _FORWARDS_CASES_INPS)
+_FORWARDS_CASES_AUTO_CALC_SINGLE = _cross_forward_cases_with_layers(_LAYER_GENS, _FORWARDS_CASES_INPS_SINGLE)
+_FORWARDS_CASES_AUTO_CALC_MULTI = _cross_forward_cases_with_layers(_LAYER_GENS, _FORWARDS_CASES_INPS_MULTI)
 
 
 _BACKWARDS_CASES_SINGLE: Iterable[Tuple[ActivationLayer, npt.NDArray, npt.NDArray, npt.NDArray]] = [
@@ -173,7 +201,7 @@ def _auto_calc_exp_forwards_multi(func: DiffVectorVectorFunction, inps: npt.NDAr
     return outs
 
 
-@pytest.mark.parametrize(["layer", "inp"], _FORWARDS_CASES_AUTO_CALC)
+@pytest.mark.parametrize(["layer", "inp"], _FORWARDS_CASES_AUTO_CALC_SINGLE)
 def test_forwards_cases_auto_calc_single(layer: ActivationLayer, inp: npt.NDArray):
 
     # Arrange
@@ -186,7 +214,7 @@ def test_forwards_cases_auto_calc_single(layer: ActivationLayer, inp: npt.NDArra
     assert_allclose(out, exp)
 
 
-@pytest.mark.parametrize(["layer", "inps"], _FORWARDS_CASES_AUTO_CALC)
+@pytest.mark.parametrize(["layer", "inps"], _FORWARDS_CASES_AUTO_CALC_MULTI)
 def test_forwards_cases_auto_calc_multi(layer: ActivationLayer, inps: npt.NDArray):
 
     # Arrange
