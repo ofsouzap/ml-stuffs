@@ -187,7 +187,7 @@ def _auto_calc_exp_forwards_single(func: DiffVectorVectorFunction, inp: npt.NDAr
 
     assert inp.ndim == 1
 
-    out = func.f(inp)
+    out = func.f_single(inp)
 
     return out
 

@@ -50,7 +50,7 @@ for it_idx in range(it_count):
 
     # Add new cost value
 
-    costs = [nn.calculate_cost(inps[i], exps[i], sum_of_squares_cost) for i in range(sample_count)]
+    costs = [nn.calculate_cost_single(inps[i], exps[i], sum_of_squares_cost) for i in range(sample_count)]
     avg_cost = sum(costs) / len(costs)
     avg_costs[it_idx] = avg_cost
 
@@ -63,7 +63,7 @@ for it_idx in range(it_count):
 
 # Add new cost value
 
-costs = [nn.calculate_cost(inps[i], exps[i], sum_of_squares_cost) for i in range(sample_count)]
+costs = [nn.calculate_cost_single(inps[i], exps[i], sum_of_squares_cost) for i in range(sample_count)]
 avg_cost = sum(costs) / len(costs)
 avg_costs[-1] = avg_cost
 

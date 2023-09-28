@@ -2,12 +2,18 @@
     / Make tests for networks
     - Methods allowing multiple simultaneous inputs
         / Layers
-        - Networks
+        / Networks
+            / Forwards functions
+            / Backwards functions
     - Tests for "_multi" methods
         / Dense layer
-        - Activation layers
+        / Activation layers
         - Networks
-    - Learning method with multiple inputs and expecteds
+            / Forwards
+            - Full forwards (single and multi)
+            / Learn progress made
+            - Learn output values
+    / Learning method with multiple inputs and expecteds (probably made as part of the aboves)
     - Stochastic learning implementation
     - Create some examples
 - Higher-order NN dense layers (e.g. quadratic, cubic etc)

@@ -80,8 +80,8 @@ class Network:
         for layer in layers:
             self.add_layer_to_end(layer)
 
-    def full_forwards(self, x: npt.NDArray) -> Iterator[npt.NDArray]:
-        """Performs a single iteration of forwards propagation through the whole network and returns the outputs of each layer.
+    def full_forwards_single(self, x: npt.NDArray) -> Iterator[npt.NDArray]:
+        """Performs a single iteration of forwards propagation for a single input vector through the whole network and returns the outputs of each layer.
 
 Parameters:
 
@@ -91,16 +91,11 @@ Returns:
 
     ys - an iterator of the output vectors from each layer
 """
+        for val in self.full_forwards_multi(x[np.newaxis,:]):
+            yield val[0]
 
-        curr = x
-        yield curr.copy()
-
-        for layer in self._layers:
-            curr = layer.forwards_single(curr)
-            yield curr.copy()
-
-    def forwards(self, x: npt.NDArray) -> npt.NDArray:
-        """Performs a single iteration of forwards propagation and returns the output of the network.
+    def forwards_single(self, x: npt.NDArray) -> npt.NDArray:
+        """Performs a single iteration of forwards propagation for a single input vector and returns the output of the network.
 
 Parameters:
 
@@ -110,51 +105,92 @@ Returns:
 
     y - the output vector from the forwards propagation
 """
+        return self.forwards_multi(x[np.newaxis,:])[0]
+
+    def full_forwards_multi(self, xs: npt.NDArray) -> Iterator[npt.NDArray]:
+        """Performs a single iteration of forwards propagation for multiple input vectors through the whole network and returns the outputs of each layer.
+
+Parameters:
+
+    xs - the input vectors to provide to the network
+
+Returns:
+
+    seqs - an iterator of the output vectors from each layer for each input vector
+"""
+
+        currs = xs
+        yield currs.copy()
+
+        for layer in self._layers:
+            currs = layer.forwards_multi(currs)
+            yield currs.copy()
+
+    def forwards_multi(self, xs: npt.NDArray) -> npt.NDArray:
+        """Performs a single iteration of forwards propagation for multiple input vectors and returns the output of the network.
+
+Parameters:
+
+    xs - the input vectors to provide to the network
+
+Returns:
+
+    ys - the output vectors from the forwards propagation
+"""
 
         if not self.has_layers:
             raise EmptyNetworkException()
         else:
-            *_, res = self.full_forwards(x)
+            *_, res = self.full_forwards_multi(xs)
             return res
 
-    def calculate_cost(self, inp: npt.NDArray, exp: npt.NDArray, cost_func: NNCostFunction) -> float:
-        """Calculate the cost for the network given some input and some expected output values"""
-        return cost_func.f(self.forwards(inp), exp)
+    def calculate_cost_single(self, inp: npt.NDArray, exp: npt.NDArray, cost_func: NNCostFunction) -> float:
+        """Calculate the cost for the network given a single input vector and a single expected output vector"""
+        return self.calculate_cost_multi(inp[np.newaxis,:], exp[np.newaxis,:], cost_func)[0]
 
-    def __full_backwards(self, xs: List[npt.NDArray], grad_wrt_y: npt.NDArray) -> Iterator[npt.NDArray]:
-        """Performs a single iteration of backwards propagation through the whole network \
+    def calculate_cost_multi(self, inps: npt.NDArray, exps: npt.NDArray, cost_func: NNCostFunction) -> npt.NDArray:
+        """Calculate the cost for the network given multiple input vectors and multiple expected output vectors"""
+        assert inps.ndim == exps.ndim == 2, "Input value array and expected value array must be two-dimensional"
+        assert inps.shape[0] == exps.shape[0], "Input and expected value arrays must have same number of vectors"
+
+        return cost_func.f_multi(self.forwards_multi(inps), exps)
+
+    def __full_backwards_multi(self, seqs: List[npt.NDArray], grads_wrt_ys: npt.NDArray) -> Iterator[npt.NDArray]:
+        """Performs a single iteration of backwards propagation through the whole network from the results for multiple input vectors \
 adjusting the layers' parameters' values along the way \
 and returns the gradients of the cost function w.r.t. the outputs of each layer.
 
 Parameters:
 
-    xs - the vectors at each stage of a forwards propagation. `xs[0]` should be the original inputs and `xs[-1]` should be the final output.
+    seqs - the vectors at each stage of a forwards propagation. `seq[:,0]` should be the original input vectors and `seq[:,-1]` should be the final output vectors.
 
-    grad_wrt_y - the gradients of the cost function w.r.t. the values of each output of the last layer of the network
+    grads_wrt_ys - the gradients of the cost function w.r.t. the values of each outputs of the last layer of the network
 
 Returns:
 
-    grads_wrt_xs_rev - a reversed iterator of the gradients of the cost function w.r.t. each of the vectors at each stage of the network. \
-The first value repeats the grad_wrt_y input. \
-The final value gives the gradients of the cost function w.r.t. the inputs to the network.
+    grads_wrt_xs_revs - a reversed iterator of the gradients of the cost function w.r.t. each of the vectors at each stage of the network. \
+The first value repeats the grads_wrt_ys input. \
+The final value gives the gradients of the cost function w.r.t. the input vectors to the network.
 """
-        assert len(xs) == len(self.layers) + 1, f"Incorrect number of xs elements. Should have one more than the number of layers. Expected {len(self.layers)} elements, got {len(xs)} elements"
-        assert grad_wrt_y.shape == (self.output_n,), f"Invalid grad_wrt_y shape. Expected {self.output_n} values but got shape of {grad_wrt_y.shape}"
-        assert xs[-1].shape == (self.output_n,), f"Invalid final xs element shape. Expected {self.output_n} values but got shape of {xs[-1].shape}"
+        assert len(seqs) == len(self.layers) + 1, f"Incorrect number of seqs elements. Should have one more than the number of layers. Expected {len(self.layers)} elements, got {len(seqs)} elements"
+        assert grads_wrt_ys.ndim == 2, "Gradients array must be two-dimensional"
+        assert grads_wrt_ys.shape[1] == self.output_n, "Vectors in gradients array must have same number of elements as output of this network"
+        assert seqs[-1].shape[1] == self.output_n, "Final seqs vectors must have same number of elements as output of this network"
+        assert all(map(lambda x: x.shape[0] == grads_wrt_ys.shape[0], seqs)), "All seqs elements must have same number of vectors as gradients array"
 
         if not self.has_layers:
             raise EmptyNetworkException()
 
-        curr_grad = grad_wrt_y
-        yield curr_grad.copy()
+        curr_grads = grads_wrt_ys
+        yield curr_grads.copy()
 
-        for layer, x in zip(
+        for layer, xs in zip(
             reversed(self._layers),
-            reversed(xs[:-1]),  # Don't include last value as it is the output of the entire network
+            reversed(seqs[:-1]),  # Don't include last value as it is the output of the entire network
         ):
 
-            curr_grad = layer.backwards_single(x, curr_grad)
-            yield curr_grad.copy()
+            curr_grads = layer.backwards_multi(xs, curr_grads)
+            yield curr_grads.copy()
 
     def learn_step_single(self, x: npt.NDArray, exp: npt.NDArray, cost_func: NNCostFunction) -> npt.NDArray:
         """Performs a single iteration of forwards propagation using a single sample \
@@ -174,22 +210,48 @@ Returns:
     grad_wrt_x - the calculated rate of change of the cost function w.r.t each input value (i.e. ∂ cost / ∂ x)
 """
 
+        return self.learn_step_multi(
+            x[np.newaxis,:],
+            exp[np.newaxis,:],
+            cost_func
+        )
+
+    def learn_step_multi(self, xs: npt.NDArray, exps: npt.NDArray, cost_func: NNCostFunction) -> npt.NDArray:
+        """Performs a single iteration of forwards propagation using multiple sample input vectors \
+and then a single iteration of backwards propagation \
+using the results to reduce the value of the cost function
+
+Parameters:
+
+    xs - the input vectors to provide for the forwards propagation
+
+    exps - the expected output vectors for the given input vectors
+
+    cost_func - the cost function to use
+
+Returns:
+
+    grads_wrt_xs - the calculated rate of change of the cost function w.r.t each input value (i.e. ∂ cost / ∂ x)
+"""
+
         if not self.has_layers:
             raise EmptyNetworkException()
 
-        assert x.shape == (self.layers[0].input_n,), f"Invalid x shape. Network takes {self.layers[0].input_n} input values but shape of x was {x.shape}"
-        assert exp.shape == (self.layers[-1].output_n,), f"Invalid exp shape. Network outputs {self.layers[-1].output_n} values but shape of exp was {exp.shape}"
+        assert xs.ndim == exps.ndim == 2, "Input values arrays and expected output values array must be two-dimensional"
+        assert xs.shape[0] == exps.shape[0], "Input and expected output values arrays must have same number of vectors"
+        assert xs.shape[1] == self.input_n, "Input vectors must have same number of elements as this network has inputs"
+        assert exps.shape[1] == self.output_n, "Expected output vectors must have same number of elements as this network has outputs"
 
         # Forward propagation
 
-        xs: List[npt.NDArray] = list(self.full_forwards(x))
+        seqs: List[npt.NDArray] = list(self.full_forwards_multi(xs))
 
         # Cost calculations
 
-        grad_wrt_y: npt.NDArray = cost_func.grad_f(xs[-1], exp)
+        grads_wrt_ys: npt.NDArray = cost_func.grad_f_multi(seqs[-1], exps)
 
         # Backwards propagation
 
-        *_, grad_wrt_x = self.__full_backwards(xs, grad_wrt_y)
+        *_, grad_wrt_x = self.__full_backwards_multi(seqs, grads_wrt_ys)
 
         return grad_wrt_x

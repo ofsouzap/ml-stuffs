@@ -1,4 +1,4 @@
-from typing import Iterable, Iterator, Tuple, Callable
+from typing import Iterable, Tuple, Callable
 import pytest
 import numpy as np
 import numpy.typing as npt
@@ -71,15 +71,20 @@ _SAMPLE_NETWORK_GENS: Iterable[Callable[[], Network]] = [
 ]
 
 
-def _cross_case_gens_with_networks(cases: Iterable[Callable[[int, int], Tuple]], networks: Iterable[Callable[[], Network]]) -> Iterator[Tuple]:
+def _cross_case_gens_with_networks(cases: Iterable[Callable[[int, int], Tuple]], networks: Iterable[Callable[[], Network]]) -> Iterable[Tuple]:
+
+    outs = []
+
     for case_gen in cases:
         for network_gen in networks:
             network = network_gen()
             case_ = case_gen(network.input_n, network.output_n)
-            yield tuple([network] + list(case_))
+            outs.append(tuple([network] + list(case_)))
+
+    return outs
 
 
-_FORWARDS_AUTO_CALC_CASE_GENS: Iterable[Callable[[int, int], Tuple[npt.NDArray]]] = [
+_FORWARDS_AUTO_CALC_SINGLE_CASE_GENS: Iterable[Callable[[int, int], Tuple[npt.NDArray]]] = [
     lambda n, m: (np.zeros(shape=(n,)),),
     lambda n, m: (np.ones(shape=(n,)),),
     lambda n, m: (np.arange(n),),
@@ -87,10 +92,19 @@ _FORWARDS_AUTO_CALC_CASE_GENS: Iterable[Callable[[int, int], Tuple[npt.NDArray]]
 ]
 
 
-_FORWARDS_AUTO_CALC_CASES = _cross_case_gens_with_networks(_FORWARDS_AUTO_CALC_CASE_GENS, _SAMPLE_NETWORK_GENS)
+_FORWARDS_AUTO_CALC_MULTI_CASE_GENS: Iterable[Callable[[int, int], Tuple[npt.NDArray]]] = [
+    lambda n, m: (np.zeros(shape=(2,n,)),),
+    lambda n, m: (np.ones(shape=(3,n,)),),
+    lambda n, m: (np.array([list(range(n)) for _ in range(m)]),),
+    lambda n, m: (np.array([np.linspace(10*i, -10*i, n) for i in range(n+m)]),),
+]
 
 
-_FORWARDS_MANUAL_CALC_CASES: Iterable[Tuple[Network, npt.NDArray, npt.NDArray]] = [
+_FORWARDS_AUTO_CALC_SINGLE_CASES = _cross_case_gens_with_networks(_FORWARDS_AUTO_CALC_SINGLE_CASE_GENS, _SAMPLE_NETWORK_GENS)
+_FORWARDS_AUTO_CALC_MULTI_CASES = _cross_case_gens_with_networks(_FORWARDS_AUTO_CALC_MULTI_CASE_GENS, _SAMPLE_NETWORK_GENS)
+
+
+_FORWARDS_MANUAL_CALC_SINGLE_CASES: Iterable[Tuple[Network, npt.NDArray, npt.NDArray]] = [
     (
         Network([
             DenseLayer(
@@ -124,7 +138,34 @@ _FORWARDS_MANUAL_CALC_CASES: Iterable[Tuple[Network, npt.NDArray, npt.NDArray]] 
 ]
 
 
-_LEARN_PROGRESS_CASE_GENS: Iterable[Callable[[int, int], Tuple[npt.NDArray, npt.NDArray, NNCostFunction, int]]] = [
+_FORWARDS_MANUAL_CALC_MULTI_CASES: Iterable[Tuple[Network, npt.NDArray, npt.NDArray]] = [
+    (
+        Network([
+            DenseLayer(
+                3, 1, _DEFAULT_LEARNING_RATE,
+                np.array([
+                    [ 1.0 ],
+                    [ 2.0 ],
+                    [ 3.0 ],
+                ], dtype=np.float64)
+            ),
+            ReluActivationLayer(1, _DEFAULT_LEARNING_RATE),
+        ]),
+        np.array([
+            [  0.0, -2.0,  3.5 ],
+            [  0.0, -2.0, -3.5 ],
+            [  1.0,  1.0,  1.0 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 6.5 ],
+            [ 0.0 ],
+            [ 6.0 ],
+        ], dtype=np.float64),
+    ),
+]
+
+
+_LEARN_PROGRESS_SINGLE_CASE_GENS: Iterable[Callable[[int, int], Tuple[npt.NDArray, npt.NDArray, NNCostFunction, int]]] = [
     lambda n, m: (  # Zero
         np.ones(shape=(n,), dtype=np.float64),
         np.zeros(m, dtype=np.float64),
@@ -152,10 +193,53 @@ _LEARN_PROGRESS_CASE_GENS: Iterable[Callable[[int, int], Tuple[npt.NDArray, npt.
 ]
 
 
-_LEARN_PROGRESS_SINGLE_CASES = _cross_case_gens_with_networks(_LEARN_PROGRESS_CASE_GENS, _SAMPLE_NETWORK_GENS)
+_LEARN_PROGRESS_MULTI_CASE_GENS: Iterable[Callable[[int, int], Tuple[npt.NDArray, npt.NDArray, NNCostFunction, int]]] = [
+    lambda n, m: (  # Zero
+        np.ones(shape=(10,n), dtype=np.float64),
+        np.zeros(shape=(10,m), dtype=np.float64),
+        sum_of_squares_cost,
+        10,
+    ),
+    lambda n, m: (  # Scaling factor
+        np.array([list(range(n)) for _ in range(5)], dtype=np.float64),
+        2*np.array([list(range(m)) for _ in range(5)], dtype=np.float64),
+        sum_of_squares_cost,
+        10,
+    ),
+    lambda n, m: (  # Linearly-scaled re-ordering
+        np.array([list(range(n)) for _ in range(5)], dtype=np.float64),
+        5*np.array([list(range(m)) for _ in range(5)], dtype=np.float64)[::-1],
+        sum_of_squares_cost,
+        10,
+    ),
+    lambda n, m: (  # Linear combination
+        np.array([list(range(n)) for _ in range(5)], dtype=np.float64),
+        10*np.array([list(range(m)) for _ in range(5)], dtype=np.float64)[::-1] + 3*np.array([list(range(m)) for _ in range(5)], dtype=np.float64),
+        sum_of_squares_cost,
+        10,
+    ),
+    lambda n, m: (  # 2*x
+        np.array([
+            list(range(n)),
+            [1 for _ in range(n)],
+            [0 for _ in range(n)],
+        ], dtype=np.float64),
+        np.array([
+            [2*x for x in range(m)],
+            [2 for _ in range(m)],
+            [0 for _ in range(m)],
+        ], dtype=np.float64),
+        sum_of_squares_cost,
+        10,
+    )
+]
 
 
-def _auto_calc_exp_forwards(network: Network, inp: npt.NDArray) -> npt.NDArray:
+_LEARN_PROGRESS_SINGLE_CASES = _cross_case_gens_with_networks(_LEARN_PROGRESS_SINGLE_CASE_GENS, _SAMPLE_NETWORK_GENS)
+_LEARN_PROGRESS_MULTI_CASES = _cross_case_gens_with_networks(_LEARN_PROGRESS_MULTI_CASE_GENS, _SAMPLE_NETWORK_GENS)
+
+
+def _auto_calc_exp_forwards_single(network: Network, inp: npt.NDArray) -> npt.NDArray:
     assert inp.ndim == 1
 
     curr = inp.copy()
@@ -165,39 +249,95 @@ def _auto_calc_exp_forwards(network: Network, inp: npt.NDArray) -> npt.NDArray:
     return curr
 
 
-@pytest.mark.parametrize(["network", "inp"], _FORWARDS_AUTO_CALC_CASES)
-def test_forwards_auto_calc(network: Network, inp: npt.NDArray):
+def _auto_calc_exp_forwards_multi(network: Network, inps: npt.NDArray) -> npt.NDArray:
+    assert inps.ndim == 2
+
+    currs = inps.copy()
+    for layer in network.layers:
+        currs = layer.forwards_multi(currs)
+
+    return currs
+
+
+@pytest.mark.parametrize(["network", "inp"], _FORWARDS_AUTO_CALC_SINGLE_CASES)
+def test_forwards_auto_calc_single(network: Network, inp: npt.NDArray):
 
     # Arrange
-    exp = _auto_calc_exp_forwards(network, inp)
+    exp = _auto_calc_exp_forwards_single(network, inp)
 
     # Act
-    out = network.forwards(inp)
+    out = network.forwards_single(inp)
 
     # Assert
     assert_allclose(out, exp)
 
 
-@pytest.mark.parametrize(["network", "inp", "exp"], _FORWARDS_MANUAL_CALC_CASES)
-def test_forwards_manual_calc(network: Network, inp: npt.NDArray, exp: npt.NDArray):
+@pytest.mark.parametrize(["network", "inps"], _FORWARDS_AUTO_CALC_MULTI_CASES)
+def test_forwards_auto_calc_multi(network: Network, inps: npt.NDArray):
+
+    # Arrange
+    exps = _auto_calc_exp_forwards_multi(network, inps)
 
     # Act
-    out = network.forwards(inp)
+    outs = network.forwards_multi(inps)
+
+    # Assert
+    assert_allclose(outs, exps)
+
+
+@pytest.mark.parametrize(["network", "inp", "exp"], _FORWARDS_MANUAL_CALC_SINGLE_CASES)
+def test_forwards_manual_calc_single(network: Network, inp: npt.NDArray, exp: npt.NDArray):
+
+    # Act
+    out = network.forwards_single(inp)
 
     # Assert
     assert_allclose(out, exp)
+
+
+@pytest.mark.parametrize(["network", "inps", "exps"], _FORWARDS_MANUAL_CALC_MULTI_CASES)
+def test_forwards_manual_calc_multi(network: Network, inps: npt.NDArray, exps: npt.NDArray):
+
+    # Act
+    outs = network.forwards_multi(inps)
+
+    # Assert
+    assert_allclose(outs, exps)
 
 
 @pytest.mark.parametrize(["network", "inp", "net_exp", "cost_func", "iteration_count"], _LEARN_PROGRESS_SINGLE_CASES)
 def test_learn_progress_single(network: Network, inp: npt.NDArray, net_exp: npt.NDArray, cost_func: NNCostFunction, iteration_count: int):
 
     # Arrange
-    orig_cost = network.calculate_cost(inp, net_exp, cost_func)
+    orig_cost = network.calculate_cost_single(inp, net_exp, cost_func)
 
     # Act
     for _ in range(iteration_count):
         network.learn_step_single(inp, net_exp, cost_func)
-    new_cost = network.calculate_cost(inp, net_exp, cost_func)
+    new_cost = network.calculate_cost_single(inp, net_exp, cost_func)
 
     # Assert
     assert new_cost < orig_cost, "Cost hasn't been reduced"
+
+
+@pytest.mark.parametrize(["network", "inps", "net_exps", "cost_func", "iteration_count"], _LEARN_PROGRESS_MULTI_CASES)
+def test_learn_progress_multi(network: Network, inps: npt.NDArray, net_exps: npt.NDArray, cost_func: NNCostFunction, iteration_count: int):
+    assert inps.ndim == net_exps.ndim == 2
+    assert inps.shape[0] == net_exps.shape[0]
+    assert inps.shape[1] == network.input_n
+    assert net_exps.shape[1] == network.output_n
+
+    # Arrange
+    orig_costs = network.calculate_cost_multi(inps, net_exps, cost_func)
+    avg_orig_cost = sum(orig_costs) / len(orig_costs)
+
+    # Act
+
+    for _ in range(iteration_count):
+        network.learn_step_multi(inps, net_exps, cost_func)
+
+    new_costs = network.calculate_cost_multi(inps, net_exps, cost_func)
+    avg_new_cost = sum(new_costs) / len(new_costs)
+
+    # Assert
+    assert avg_new_cost < avg_orig_cost, "Average cost hasn't been reduced"

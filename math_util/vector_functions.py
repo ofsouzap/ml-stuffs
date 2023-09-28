@@ -12,7 +12,7 @@ class DiffVectorVectorFunction:
         self.__f_multi = f_multi
         self.__grad_f_multi = grad_f_multi
 
-    def f(self, x: npt.NDArray) -> npt.NDArray:
+    def f_single(self, x: npt.NDArray) -> npt.NDArray:
         """Apply the function to a single input.
 
 Parameters:
@@ -42,7 +42,7 @@ Returns:
 
         return self.__f_multi(xs)
 
-    def grad_f(self, x: npt.NDArray) -> npt.NDArray:
+    def grad_f_single(self, x: npt.NDArray) -> npt.NDArray:
         """Apply the gradient function to a single input.
 
 Parameters:
@@ -82,7 +82,7 @@ class NNCostFunction:
         self.__f_multi = f_multi
         self.__grad_f_multi = grad_f_multi
 
-    def f(self, obs: npt.NDArray, exp: npt.NDArray) -> float:
+    def f_single(self, obs: npt.NDArray, exp: npt.NDArray) -> float:
         """Apply the cost function.
 
 Parameters:
@@ -120,7 +120,7 @@ Returns:
 
         return self.__f_multi(obss, exps)
 
-    def grad_f(self, obs: npt.NDArray, exp: npt.NDArray) -> npt.NDArray:
+    def grad_f_single(self, obs: npt.NDArray, exp: npt.NDArray) -> npt.NDArray:
         """Apply the derivative function of the cost function w.r.t. the observed output vector (i.e. ∂ cost / ∂ observed_value).
 
 Parameters:
