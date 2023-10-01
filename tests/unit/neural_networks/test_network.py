@@ -358,6 +358,56 @@ _LEARN_STEP_OUTPUT_MULTI_CASES: Iterable[Tuple[str, Tuple[Network, npt.NDArray, 
 ]
 
 
+_LEARN_STOCHASTIC_PROGRESS_MULTI_CASE_GENS: Iterable[Callable[[int, int], Tuple[npt.NDArray, npt.NDArray, NNCostFunction, int, int]]] = [
+    lambda n, m: (  # Zero
+        np.ones(shape=(10,n), dtype=np.float64),
+        np.zeros(shape=(10,m), dtype=np.float64),
+        sum_of_squares_cost,
+        5,
+        10,
+    ),
+    lambda n, m: (  # Scaling factor
+        np.array([list(range(n)) for _ in range(5)], dtype=np.float64),
+        2*np.array([list(range(m)) for _ in range(5)], dtype=np.float64),
+        sum_of_squares_cost,
+        3,
+        10,
+    ),
+    lambda n, m: (  # Linearly-scaled re-ordering
+        np.array([list(range(n)) for _ in range(5)], dtype=np.float64),
+        5*np.array([list(range(m)) for _ in range(5)], dtype=np.float64)[::-1],
+        sum_of_squares_cost,
+        3,
+        10,
+    ),
+    lambda n, m: (  # Linear combination
+        np.array([list(range(n)) for _ in range(5)], dtype=np.float64),
+        10*np.array([list(range(m)) for _ in range(5)], dtype=np.float64)[::-1] + 3*np.array([list(range(m)) for _ in range(5)], dtype=np.float64),
+        sum_of_squares_cost,
+        3,
+        10,
+    ),
+    lambda n, m: (  # 2*x
+        np.array([
+            list(range(n)),
+            [1 for _ in range(n)],
+            [0 for _ in range(n)],
+        ], dtype=np.float64),
+        np.array([
+            [2*x for x in range(m)],
+            [2 for _ in range(m)],
+            [0 for _ in range(m)],
+        ], dtype=np.float64),
+        sum_of_squares_cost,
+        2,
+        10,
+    )
+]
+
+
+_LEARN_STOCHASTIC_PROGRESS_MULTI_CASES = _cross_case_gens_with_networks(_LEARN_STOCHASTIC_PROGRESS_MULTI_CASE_GENS, _SAMPLE_NETWORK_GENS)
+
+
 def _auto_calc_exp_forwards_single(network: Network, inp: npt.NDArray) -> npt.NDArray:
     assert inp.ndim == 1
 
@@ -470,7 +520,8 @@ def test_learn_progress_multi(network: Network, inps: npt.NDArray, net_exps: npt
         network.learn_step_multi(inps, net_exps, cost_func)
 
     new_costs = network.calculate_cost_multi(inps, net_exps, cost_func)
-    avg_new_cost = sum(new_costs) / len(new_costs)
+    assert new_costs.ndim == 1
+    avg_new_cost = np.mean(new_costs)
 
     # Assert
     assert avg_new_cost < avg_orig_cost, "Average cost hasn't been reduced"
@@ -505,3 +556,32 @@ def test_learn_step_output_multi(network: Network, inps: npt.NDArray, net_exps: 
 
     # Assert
     assert_allclose(grads_wrt_xs, exps)
+
+
+@pytest.mark.parametrize(["network", "inps", "net_exps", "cost_func", "sample_size", "iteration_count"], _LEARN_STOCHASTIC_PROGRESS_MULTI_CASES)
+def test_learn_stochastic_progress(network: Network, inps: npt.NDArray, net_exps: npt.NDArray, cost_func: NNCostFunction, sample_size: int, iteration_count: int):
+    assert inps.ndim == net_exps.ndim == 2
+    assert inps.shape[0] == net_exps.shape[0]
+    assert inps.shape[1] == network.input_n
+    assert net_exps.shape[1] == network.output_n
+
+    # Arrange
+    orig_costs = network.calculate_cost_multi(inps, net_exps, cost_func)
+    avg_orig_cost = sum(orig_costs) / len(orig_costs)
+
+    # Act
+
+    network.learn_stochastic(
+        xs=inps,
+        exps=net_exps,
+        cost_func=cost_func,
+        sample_size=sample_size,
+        iteration_count=iteration_count,
+    )
+
+    new_costs = network.calculate_cost_multi(inps, net_exps, cost_func)
+    assert new_costs.ndim == 1
+    avg_new_cost = np.mean(new_costs)
+
+    # Assert
+    assert avg_new_cost < avg_orig_cost, "Average cost hasn't been reduced"
