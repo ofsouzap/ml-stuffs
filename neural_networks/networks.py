@@ -1,6 +1,7 @@
 from typing import Iterable, Iterator, List, Optional, Callable
 import numpy as np
 import numpy.typing as npt
+import itertools
 from math_util.vector_functions import NNCostFunction
 from .layers import LayerBase
 
@@ -305,16 +306,16 @@ Returns:
         )
 
     def learn_stochastic(self,
-                              xs: npt.NDArray,
-                              exps: npt.NDArray,
-                              cost_func: NNCostFunction,
-                              sample_size: int,
-                              iteration_count: Optional[int] = None,
-                              avg_cost_threshold: Optional[float] = None,
-                              min_cost_threshold: Optional[float] = None,
-                              max_cost_threshold: Optional[float] = None,
-                              provide_cost_output: bool = True,
-                              rng: Optional[np.random.Generator] = None) -> Iterator[npt.NDArray]:
+                         xs: npt.NDArray,
+                         exps: npt.NDArray,
+                         cost_func: NNCostFunction,
+                         sample_size: int,
+                         iteration_count: Optional[int] = None,
+                         avg_cost_threshold: Optional[float] = None,
+                         min_cost_threshold: Optional[float] = None,
+                         max_cost_threshold: Optional[float] = None,
+                         provide_cost_output: bool = True,
+                         rng: Optional[np.random.Generator] = None) -> Iterable[npt.NDArray]:
         """Performs multiple iterations of stochastic gradient descent learning algorithm to reduce the value of the cost function
 
 Parameters:
@@ -341,7 +342,7 @@ Parameters:
 
 Returns:
 
-    costs_it - an iterator of the calculated cost values for every input after each step of the cycle. \
+    costs_it - an iterable of the calculated cost values for every input after each step of the cycle. \
 If provide_cost_output is False, however, all values yielded will be empty arrays.
 
 Termination:
@@ -390,9 +391,9 @@ When any one of the conditions is fulfilled (if one isn't provided then it isn't
 
         # Run cycle
 
-        iteration_idx = 0
+        outs: List[npt.NDArray] = []
 
-        while True:
+        for iteration_idx in itertools.count(start=0):
 
             # Perform step
 
@@ -417,7 +418,7 @@ When any one of the conditions is fulfilled (if one isn't provided then it isn't
 
             # Yield output
 
-            yield costs
+            outs.append(costs.copy())
 
             # Termination check
 
@@ -430,3 +431,5 @@ When any one of the conditions is fulfilled (if one isn't provided then it isn't
 
                 if costs_check(costs):
                     break
+
+        return outs

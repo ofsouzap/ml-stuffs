@@ -571,13 +571,15 @@ def test_learn_stochastic_progress(network: Network, inps: npt.NDArray, net_exps
 
     # Act
 
-    network.learn_stochastic(
-        xs=inps,
-        exps=net_exps,
-        cost_func=cost_func,
-        sample_size=sample_size,
-        iteration_count=iteration_count,
-    )
+    network.learn_stochastic(inps, net_exps, cost_func, sample_size, iteration_count=iteration_count)
+
+    # network.learn_stochastic(
+    #     inps,
+    #     net_exps,
+    #     cost_func,
+    #     sample_size,
+    #     iteration_count=iteration_count
+    # )
 
     new_costs = network.calculate_cost_multi(inps, net_exps, cost_func)
     assert new_costs.ndim == 1
