@@ -21,3 +21,4 @@
 - Try implement some parts in C and create Python bindings for them
     - For example, NNs
 - CNNs
+- Try use 3 -> 1 NN polynomial layer to determine an implicit equation for a surface given a point cloud

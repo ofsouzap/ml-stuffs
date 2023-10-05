@@ -5,6 +5,9 @@ import numpy.typing as npt
 from math_util.vector_functions import DiffVectorVectorFunction, relu, sigmoid
 
 
+_DEFAULT_DTYPE: npt.DTypeLike = np.float64
+
+
 class LayerBase(ABC):
 
     def __init__(self,
@@ -110,6 +113,15 @@ class DenseLayer(LayerBase):
     def __init__(self, n: int, m: int, learning_rate: float, weights: Optional[npt.NDArray] = None, bias: Optional[npt.NDArray] = None):
         super().__init__(n, m, learning_rate)
 
+        dtype: npt.DTypeLike
+
+        if weights is not None:
+            dtype = weights.dtype
+        elif bias is not None:
+            dtype = bias.dtype
+        else:
+            dtype = _DEFAULT_DTYPE
+
         self._weights: npt.NDArray
         self._bias: npt.NDArray
 
@@ -117,16 +129,18 @@ class DenseLayer(LayerBase):
             assert weights.ndim == 2, "Weights must be two-dimensional array"
             assert weights.shape[0] == self.input_n, "Weights has incorrect number of input values"
             assert weights.shape[1] == self.output_n, "Weights has incorrect number of output values"
+            assert weights.dtype == dtype, "Weights has incorrect data type"
             self._weights = weights
         else:
-            self._weights = np.ones(shape=(self.input_n,self.output_n))
+            self._weights = np.ones(shape=(self.input_n,self.output_n), dtype=dtype)
 
         if bias is not None:
             assert bias.ndim == 1, "Bias must be one-dimensional array"
             assert bias.shape[0] == self.output_n, "Bias has incorrect number of values"
+            assert bias.dtype == dtype, "Bias has incorrect data type"
             self._bias = bias
         else:
-            self._bias = np.zeros(shape=(self.output_n,))
+            self._bias = np.zeros(shape=(self.output_n,), dtype=dtype)
 
     @property
     def n(self) -> int:
@@ -219,3 +233,104 @@ class DenseLayer(LayerBase):
         assert add_biases.ndim == 2, "Input must be two-dimensional"
         assert add_biases.shape[1] == self.bias.shape[0], "Incorrect number of bias values"
         self._bias += np.sum(add_biases, axis=0)
+
+
+class PolynomialLayer(LayerBase):
+
+    def __init__(self,
+                 n: int,
+                 m: int,
+                 order: int,
+                 learning_rate: float,
+                 order_weights: Optional[List[npt.NDArray]] = None,
+                 bias: Optional[npt.NDArray] = None):
+        super().__init__(n, m, learning_rate)
+
+        # Determine dtype
+
+        dtype: npt.DTypeLike
+
+        if bias is not None:
+            dtype = bias.dtype
+        elif (order_weights is not None) and (len(order_weights) >= 1):
+            dtype = order_weights[0].dtype
+        else:
+            dtype = np.float64
+
+        # Use parameter order weights and biases or use default
+
+        self._order_weights: List[npt.NDArray]
+        """The weights for each order of term except constant terms. Therefore the weight matrix for x^n is at _order_weights[n-1]"""
+        self._bias: npt.NDArray
+
+        assert order >= 1, "Layer order must be at least one"
+
+        if order_weights is not None:
+
+            assert len(order_weights) == order, "Weights must have same number of values as layer order"
+
+            self._order_weights = []
+
+            for order_weight in order_weights:
+
+                assert order_weight.ndim == 2, "Weights must be two-dimensional arrays"
+                assert order_weight.shape[0] == self.input_n, "Weight matrix has incorrect number of input values"
+                assert order_weight.shape[1] == self.output_n, "Weight matrix has incorrect number of output values"
+                assert order_weight.dtype == dtype, "All matrices must have the same data type"
+
+                self._order_weights.append(order_weight)
+
+        else:
+            self._order_weights = [np.ones(shape=(self.input_n, self.output_n), dtype=dtype)]
+
+        if bias is not None:
+            assert bias.ndim == 1, "Bias must be one-dimensional array"
+            assert bias.shape[0] == self.output_n, "Bias has incorrect number of values"
+            assert bias.dtype == dtype, "Bias has incorrect data type"
+            self._bias = bias
+        else:
+            self._bias = np.zeros(shape=(self.output_n,), dtype=dtype)
+
+    @property
+    def order(self) -> int:
+        return len(self._order_weights)
+
+    def get_order_weight(self, order: int) -> npt.NDArray:
+        assert 0 < order <= self.order, "Invalid order"
+        return self._order_weights[order-1]
+
+    @property
+    def bias(self) -> npt.NDArray:
+        return self._bias
+
+    def __str__(self) -> str:
+        # TODO - proper implementation. Use DenseLayer.__str__ as reference
+        return "Polynomial Layer"
+
+    def forwards_multi(self, xs: npt.NDArray) -> npt.NDArray:
+
+        assert xs.ndim == 2, "Input must be two-dimensional"
+
+        mat_xs = xs[:,np.newaxis,:]
+        mat_result: npt.NDArray = np.zeros(shape=(xs.shape[0],1,self.output_n), dtype=xs.dtype)
+
+        # Add polynomial terms
+
+        for term_order in range(1,self.order+1):
+            mat_xs_terms = np.power(mat_xs, term_order)
+            weights = self.get_order_weight(term_order)
+            mat_result += np.matmul(mat_xs_terms, weights)
+
+        # Add constant terms (bias values)
+
+        mat_result += self.bias
+
+        result = mat_result[:,0,:]  # The results of the matrix multiplication was an array of row vectors, this just takes each row vector as a 1D array
+
+        assert result.ndim == 2
+        assert result.shape[0] == xs.shape[0]
+
+        return result
+
+    def backwards_multi(self, x: npt.NDArray, grads_wrt_ys: npt.NDArray) -> npt.NDArray:
+        raise NotImplementedError()  # TODO
