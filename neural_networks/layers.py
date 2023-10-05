@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import numpy.typing as npt
 from math_util.vector_functions import DiffVectorVectorFunction, relu, sigmoid
+from .convolution import Kernel
 
 
 class LayerBase(ABC):
@@ -219,3 +220,42 @@ class DenseLayer(LayerBase):
         assert add_biases.ndim == 2, "Input must be two-dimensional"
         assert add_biases.shape[1] == self.bias.shape[0], "Incorrect number of bias values"
         self._bias += np.sum(add_biases, axis=0)
+
+
+class ConvolutionalLayer(LayerBase):
+    """A layer that performs a convolution on a flattened image using some image kernel reducing the dimensions of the image instead of padding the image"""
+
+    def __init__(self,
+                 kernel: Kernel,
+                 input_width: int,
+                 input_height: int,
+                 learning_rate: float):
+
+        assert input_width > 0, "Input image width must be positive"
+        assert input_height > 0, "Input image height must be positive"
+        assert input_width >= kernel.mat_width, "Input image width must be greater than the kernel's matrix width"
+        assert input_height >= kernel.mat_width, "Input image height must be greater than the kernel's matrix height"
+
+        output_width = input_width - (2*kernel.range)
+        output_height = input_height - (2*kernel.range)
+
+        input_n = input_width * input_height
+        output_n = output_width * output_height
+
+        super().__init__(input_n, output_n, learning_rate)
+
+        self._kernel = kernel
+        self._input_width = input_width
+
+    @property
+    def kernel(self) -> Kernel:
+        return self._kernel
+
+    def __str__(self) -> str:
+        return str(self.kernel)
+
+    def forwards_multi(self, xs: npt.NDArray) -> npt.NDArray:
+        raise NotImplementedError()  # TODO
+
+    def backwards_multi(self, x: npt.NDArray, grads_wrt_ys: npt.NDArray) -> npt.NDArray:
+        raise NotImplementedError()  # TODO

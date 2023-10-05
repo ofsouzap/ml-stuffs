@@ -15,9 +15,8 @@
             / Learn output values
     / Learning method with multiple inputs and expecteds (probably made as part of the aboves)
     / Stochastic learning implementation
-    - Tests for stochastic learning implementation
-    - Create some examples
+    / Tests for stochastic learning implementation
+- CNNs
 - Higher-order NN dense layers (e.g. quadratic, cubic etc)
 - Try implement some parts in C and create Python bindings for them
     - For example, NNs
-- CNNs
