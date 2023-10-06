@@ -49,145 +49,144 @@ _IDENTITIY_CASES_MULTI: Iterable[Tuple[npt.NDArray]] = [
 ]
 
 
-_FORWARDS_CASES_AUTO_CALC_SINGLE: Iterable[Tuple[List[npt.NDArray], npt.NDArray, npt.NDArray]] = [
+_FORWARDS_CASES_AUTO_CALC_SINGLE: Iterable[Tuple[npt.NDArray, npt.NDArray, npt.NDArray]] = [
     (
-        [
-            np.array([
+        np.array([
+            [
                 [ 1, 2 ],
                 [ 3, 4 ],
                 [ 5, 6 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 1, 0 ],
                 [ 3, 0 ],
                 [ 5, 0 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 0, 0 ],
                 [ 0, 0 ],
                 [ 0, 0 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 2, 2 ],
                 [ 2, 2 ],
                 [ 2, 2 ],
-            ], dtype=np.float64),
-        ],
+            ],
+        ], dtype=np.float64),
         np.zeros(shape=(2,), dtype=np.float64),
         np.array([ 1, 1, 1 ], dtype=np.float64),
     ),
     (
-        [
-            np.array([
+        np.array([
+            [
                 [ 1, 2 ],
                 [ 3, 4 ],
                 [ 5, 6 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 0, 0 ],
                 [ 0, 0 ],
                 [ 0, 0 ],
-            ], dtype=np.float64),
-        ],
+            ],
+        ], dtype=np.float64),
         np.zeros(shape=(2,), dtype=np.float64),
         np.array([ 1, -6, 3.2 ], dtype=np.float64),
     ),
     (
-        [
-            np.array([
+        np.array([
+            [
                 [ 1, 2 ],
                 [ 3, 4 ],
                 [ 5, 6 ],
-            ], dtype=np.float64),
-            np.array([
+            ],[
                 [ 2, 5 ],
                 [ 5, 5 ],
                 [ 5, 5 ],
-            ], dtype=np.float64),
-        ],
+            ],
+        ], dtype=np.float64),
         np.array([ 0.1, -0.1 ], dtype=np.float64),
         np.array([ 1, -6, 3.2 ], dtype=np.float64),
     ),
     (
-        [
-            np.array([
+        np.array([
+            [
                 [ 1, 2, -2.4, 0.5 ],
                 [ 3, 4.1, 1, 2 ],
                 [ 5, 6, -6, 3 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 1, 2, -4, 0.5 ],
                 [ 0, 1, 0, 2.3 ],
                 [ 0, 0, 0, 3 ],
-            ], dtype=np.float64),
-        ],
+            ],
+        ], dtype=np.float64),
         np.array([ 0.1, 0.2, -0.3, 10.2 ], dtype=np.float64),
         np.array([ -1.0, 1.24, 0.4 ], dtype=np.float64),
     ),
     (
-        [
-            np.array([
+        np.array([
+            [
                 [ 0, 0 ],
                 [ 0, 0 ],
                 [ 0, 0 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 0, 0 ],
                 [ 0, 0 ],
                 [ 0, 0 ],
-            ], dtype=np.float64),
-        ],
+            ],
+        ], dtype=np.float64),
         np.zeros(shape=(2,), dtype=np.float64),
         np.array([ 0, -0.5, 52 ], dtype=np.float64),
     ),
     (
-        [
-            np.array([
+        np.array([
+            [
                 [ 0, 0, 0, 0 ],
                 [ 0, 0, 0, 0 ],
                 [ 0, 0, 0, 0 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 0, 0, 0, 1 ],
                 [ 0, 0, 0, 1 ],
                 [ 0, 0, 1, 1 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 0, 0, 0, 0 ],
                 [ 0, 0, 0, 2 ],
                 [ 0, 0, 0, 0 ],
-            ], dtype=np.float64),
-        ],
+            ],
+        ], dtype=np.float64),
         np.ones(shape=(4,), dtype=np.float64),
         np.array([ 0, -0.5, 52 ], dtype=np.float64),
     ),
 ]
 
 
-_FORWARDS_CASES_AUTO_CALC_MULTI: Iterable[Tuple[List[npt.NDArray], npt.NDArray, npt.NDArray]] = [
+_FORWARDS_CASES_AUTO_CALC_MULTI: Iterable[Tuple[npt.NDArray, npt.NDArray, npt.NDArray]] = [
     (
-        [
-            np.array([
+        np.array([
+            [
                 [ 1, 2 ],
                 [ 3, 4 ],
                 [ 5, 6 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 1, 0 ],
                 [ 3, 0 ],
                 [ 5, 0 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 0, 0 ],
                 [ 0, 0 ],
                 [ 0, 0 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 2, 2 ],
                 [ 2, 2 ],
                 [ 2, 2 ],
-            ], dtype=np.float64),
-        ],
+            ],
+        ]),
         np.zeros(shape=(2,), dtype=np.float64),
         np.array([
             [ 1, 1, 1 ],
@@ -197,18 +196,18 @@ _FORWARDS_CASES_AUTO_CALC_MULTI: Iterable[Tuple[List[npt.NDArray], npt.NDArray, 
         ], dtype=np.float64),
     ),
     (
-        [
-            np.array([
+        np.array([
+            [
                 [ 1, 2 ],
                 [ 3, 4 ],
                 [ 5, 6 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 0, 0 ],
                 [ 0, 0 ],
                 [ 0, 0 ],
-            ], dtype=np.float64),
-        ],
+            ],
+        ], dtype=np.float64),
         np.zeros(shape=(2,), dtype=np.float64),
         np.array([
             [ 1, -6, 3.2 ],
@@ -217,18 +216,18 @@ _FORWARDS_CASES_AUTO_CALC_MULTI: Iterable[Tuple[List[npt.NDArray], npt.NDArray, 
         ], dtype=np.float64),
     ),
     (
-        [
-            np.array([
+        np.array([
+            [
                 [ 1, 2 ],
                 [ 3, 4 ],
                 [ 5, 6 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 2, 5 ],
                 [ 5, 5 ],
                 [ 5, 5 ],
-            ], dtype=np.float64),
-        ],
+            ],
+        ], dtype=np.float64),
         np.array([ 0.1, -0.1 ], dtype=np.float64),
         np.array([
             [ 1, -6, 3.2 ],
@@ -238,59 +237,59 @@ _FORWARDS_CASES_AUTO_CALC_MULTI: Iterable[Tuple[List[npt.NDArray], npt.NDArray, 
         ], dtype=np.float64),
     ),
     (
-        [
-            np.array([
+        np.array([
+            [
                 [ 1, 2, -2.4, 0.5 ],
                 [ 3, 4.1, 1, 2 ],
                 [ 5, 6, -6, 3 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 1, 2, -4, 0.5 ],
                 [ 0, 1, 0, 2.3 ],
                 [ 0, 0, 0, 3 ],
-            ], dtype=np.float64),
-        ],
+            ],
+        ], dtype=np.float64),
         np.array([ 0.1, 0.2, -0.3, 10.2 ], dtype=np.float64),
         np.array([
             [ -1.0, 1.24, 0.4 ],
         ], dtype=np.float64),
     ),
     (
-        [
-            np.array([
+        np.array([
+            [
                 [ 0, 0 ],
                 [ 0, 0 ],
                 [ 0, 0 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 0, 0 ],
                 [ 0, 0 ],
                 [ 0, 0 ],
-            ], dtype=np.float64),
-        ],
+            ],
+        ], dtype=np.float64),
         np.zeros(shape=(2,), dtype=np.float64),
         np.array([
             [ 0, -0.5, 52 ],
         ], dtype=np.float64),
     ),
     (
-        [
-            np.array([
+        np.array([
+            [
                 [ 0, 0, 0, 0 ],
                 [ 0, 0, 0, 0 ],
                 [ 0, 0, 0, 0 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 0, 0, 0, 1 ],
                 [ 0, 0, 0, 1 ],
                 [ 0, 0, 1, 1 ],
-            ], dtype=np.float64),
-            np.array([
+            ],
+            [
                 [ 0, 0, 0, 0 ],
                 [ 0, 0, 0, 2 ],
                 [ 0, 0, 0, 0 ],
-            ], dtype=np.float64),
-        ],
+            ],
+        ], dtype=np.float64),
         np.ones(shape=(4,), dtype=np.float64),
         np.array([
             [ 0, -0.5, 52 ],
@@ -300,26 +299,25 @@ _FORWARDS_CASES_AUTO_CALC_MULTI: Iterable[Tuple[List[npt.NDArray], npt.NDArray, 
 ]
 
 
-def _create(ws: List[npt.NDArray], b: npt.NDArray, learning_rate: float = DEFAULT_LEARNING_RATE) -> PolynomialLayer:
+def _create(ws: npt.NDArray, b: npt.NDArray, learning_rate: float = DEFAULT_LEARNING_RATE) -> PolynomialLayer:
     return PolynomialLayer(
-        n=ws[0].shape[0],
-        m=ws[0].shape[1],
-        order=len(ws),
+        n=ws.shape[1],
+        m=ws.shape[2],
         learning_rate=learning_rate,
         order_weights=ws,
         bias=b
     )
 
 
-def _calc_auto_exp_forwards_single(ws: List[npt.NDArray], b: npt.NDArray, inp: npt.NDArray) -> npt.NDArray:
+def _calc_auto_exp_forwards_single(ws: npt.NDArray, b: npt.NDArray, inp: npt.NDArray) -> npt.NDArray:
     assert inp.ndim == b.ndim == 1
-    assert all(map(lambda w: w.ndim == 2, ws))
-    assert all(map(lambda w: w.shape[0] == inp.shape[0], ws))
-    assert all(map(lambda w: w.shape[1] == b.shape[0], ws))
+    assert ws.ndim == 3
+    assert ws.shape[1] == inp.shape[0]
+    assert ws.shape[2] == b.shape[0]
 
-    N, M = ws[0].shape[0], ws[0].shape[1]
+    N, M = ws.shape[1], ws.shape[2]
 
-    out = np.zeros(shape=(ws[0].shape[1]))
+    out = np.zeros(shape=(M))
 
     # Weights
 
@@ -332,9 +330,8 @@ def _calc_auto_exp_forwards_single(ws: List[npt.NDArray], b: npt.NDArray, inp: n
             add_val = 0
 
             for n in range(1,len(ws)+1):
-                ws_index = n-1
-                w = ws[ws_index]
-                add_val += (inp[i]**n) * w[i,j]
+                term_order = n-1
+                add_val += (inp[i]**n) * ws[term_order,i,j]
 
             out[j] += add_val
 
@@ -346,15 +343,15 @@ def _calc_auto_exp_forwards_single(ws: List[npt.NDArray], b: npt.NDArray, inp: n
     return out
 
 
-def _calc_auto_exp_forwards_multi(ws: List[npt.NDArray], b: npt.NDArray, inps: npt.NDArray) -> npt.NDArray:
+def _calc_auto_exp_forwards_multi(ws: npt.NDArray, b: npt.NDArray, inps: npt.NDArray) -> npt.NDArray:
     return np.array([_calc_auto_exp_forwards_single(ws, b, inp) for inp in inps])
 
 
-def _run_test_forwards_single(ws: List[npt.NDArray], b: npt.NDArray, inp: npt.NDArray, exp: npt.NDArray):
-    assert all(map(lambda w: w.ndim == 2, ws))
+def _run_test_forwards_single(ws: npt.NDArray, b: npt.NDArray, inp: npt.NDArray, exp: npt.NDArray):
+    assert ws.ndim == 3
     assert b.ndim == inp.ndim == exp.ndim == 1
-    assert all(map(lambda w: w.shape[0] == inp.shape[0], ws))
-    assert all(map(lambda w: w.shape[1] == b.shape[0] == exp.shape[0], ws))
+    assert ws.shape[1] == inp.shape[0]
+    assert ws.shape[2] == b.shape[0] == exp.shape[0]
 
     # Arrange
     layer = _create(ws, b)
@@ -366,12 +363,12 @@ def _run_test_forwards_single(ws: List[npt.NDArray], b: npt.NDArray, inp: npt.ND
     assert_allclose(out, exp)
 
 
-def _run_test_forwards_multi(ws: List[npt.NDArray], b: npt.NDArray, inps: npt.NDArray, exps: npt.NDArray):
-    assert all(map(lambda w: w.ndim == 2, ws))
+def _run_test_forwards_multi(ws: npt.NDArray, b: npt.NDArray, inps: npt.NDArray, exps: npt.NDArray):
+    assert ws.ndim == 3
     assert b.ndim == 1
     assert inps.ndim == exps.ndim == 2
-    assert all(map(lambda w: w.shape[0] == inps.shape[1], ws))
-    assert all(map(lambda w: w.shape[1] == b.shape[0] == exps.shape[1], ws))
+    assert ws.shape[1] == inps.shape[1]
+    assert ws.shape[2] == b.shape[0] == exps.shape[1]
 
     # Arrange
     layer = _create(ws, b)
@@ -387,7 +384,7 @@ def _run_test_forwards_multi(ws: List[npt.NDArray], b: npt.NDArray, inps: npt.ND
 def test_forwards_identity_single(inp: npt.NDArray):
     assert inp.ndim == 1
     N = inp.shape[0]
-    ws = [np.identity(N)]
+    ws = np.identity(N)[np.newaxis,:,:]
     b = np.zeros(shape=N)
     return _run_test_forwards_single(ws, b, inp, inp)
 
@@ -396,7 +393,7 @@ def test_forwards_identity_single(inp: npt.NDArray):
 def test_forwards_identity_multi(inps: npt.NDArray):
     assert inps.ndim == 2
     N = inps.shape[1]
-    ws = [np.identity(N)]
+    ws = np.identity(N)[np.newaxis,:,:]
     b = np.zeros(shape=N)
     return _run_test_forwards_multi(ws, b, inps, inps)
 

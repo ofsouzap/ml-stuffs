@@ -240,9 +240,8 @@ class PolynomialLayer(LayerBase):
     def __init__(self,
                  n: int,
                  m: int,
-                 order: int,
                  learning_rate: float,
-                 order_weights: Optional[List[npt.NDArray]] = None,
+                 order_weights: Optional[npt.NDArray] = None,
                  bias: Optional[npt.NDArray] = None):
         super().__init__(n, m, learning_rate)
 
@@ -259,29 +258,18 @@ class PolynomialLayer(LayerBase):
 
         # Use parameter order weights and biases or use default
 
-        self._order_weights: List[npt.NDArray]
+        self._order_weights: npt.NDArray
         """The weights for each order of term except constant terms. Therefore the weight matrix for x^n is at _order_weights[n-1]"""
         self._bias: npt.NDArray
 
-        assert order >= 1, "Layer order must be at least one"
-
         if order_weights is not None:
-
-            assert len(order_weights) == order, "Weights must have same number of values as layer order"
-
-            self._order_weights = []
-
-            for order_weight in order_weights:
-
-                assert order_weight.ndim == 2, "Weights must be two-dimensional arrays"
-                assert order_weight.shape[0] == self.input_n, "Weight matrix has incorrect number of input values"
-                assert order_weight.shape[1] == self.output_n, "Weight matrix has incorrect number of output values"
-                assert order_weight.dtype == dtype, "All matrices must have the same data type"
-
-                self._order_weights.append(order_weight)
-
+            assert order_weights.ndim == 3, "Order weights must be three-dimensional array"
+            assert order_weights.shape[1] == self.input_n, "Order weights matrices have incorrect number of input values"
+            assert order_weights.shape[2] == self.output_n, "Order weights matrices have incorrect number of output values"
+            assert order_weights.dtype == dtype, "Order weights has incorrect data type"
+            self._order_weights = order_weights
         else:
-            self._order_weights = [np.ones(shape=(self.input_n, self.output_n), dtype=dtype)]
+            self._order_weights = np.ones(shape=(1,n,m), dtype=dtype)
 
         if bias is not None:
             assert bias.ndim == 1, "Bias must be one-dimensional array"
@@ -293,11 +281,12 @@ class PolynomialLayer(LayerBase):
 
     @property
     def order(self) -> int:
-        return len(self._order_weights)
+        return self._order_weights.shape[0]
 
     def get_order_weight(self, order: int) -> npt.NDArray:
+        """Gets a copy of the weight matrix for a certain order of term"""
         assert 0 < order <= self.order, "Invalid order"
-        return self._order_weights[order-1]
+        return self._order_weights[order-1,:,:].copy()
 
     @property
     def bias(self) -> npt.NDArray:
@@ -312,18 +301,29 @@ class PolynomialLayer(LayerBase):
         assert xs.ndim == 2, "Input must be two-dimensional"
 
         mat_xs = xs[:,np.newaxis,:]
+        """The value at [i,1,j] gives the i'th input vector's j'th component"""
+
         mat_result: npt.NDArray = np.zeros(shape=(xs.shape[0],1,self.output_n), dtype=xs.dtype)
 
         # Add polynomial terms
 
-        for term_order in range(1,self.order+1):
-            mat_xs_terms = np.power(mat_xs, term_order)
-            weights = self.get_order_weight(term_order)
-            mat_result += np.matmul(mat_xs_terms, weights)
+        mat_xs_tiled = np.tile(mat_xs, (self.order,1,1,1))
+        """4D array with the input vectors repeated. The value at [i,j,1,k] gives, for all valid i, the j'th input vector's k'th component"""
+
+        pows = np.arange(1, self.order+1, dtype=xs.dtype)
+        """1D array of powers to raise inputs to"""
+
+        mat_xs_powed = mat_xs_tiled * pows[:,np.newaxis,np.newaxis,np.newaxis]
+        """4D array with the input vectors with their values to the appropriate powers. \
+The value at [i,j,1,k] gives the j'th input vector's k'th component to the power of (i+1)"""
+
+        mat_result += np.matmul(mat_xs_powed, self._order_weights)
 
         # Add constant terms (bias values)
 
         mat_result += self.bias
+
+        # Return final result
 
         result = mat_result[:,0,:]  # The results of the matrix multiplication was an array of row vectors, this just takes each row vector as a 1D array
 
