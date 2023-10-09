@@ -129,7 +129,6 @@ class DenseLayer(LayerBase):
             assert weights.ndim == 2, "Weights must be two-dimensional array"
             assert weights.shape[0] == self.input_n, "Weights has incorrect number of input values"
             assert weights.shape[1] == self.output_n, "Weights has incorrect number of output values"
-            assert weights.dtype == dtype, "Weights has incorrect data type"
             self._weights = weights
         else:
             self._weights = np.ones(shape=(self.input_n,self.output_n), dtype=dtype)
@@ -137,7 +136,6 @@ class DenseLayer(LayerBase):
         if bias is not None:
             assert bias.ndim == 1, "Bias must be one-dimensional array"
             assert bias.shape[0] == self.output_n, "Bias has incorrect number of values"
-            assert bias.dtype == dtype, "Bias has incorrect data type"
             self._bias = bias
         else:
             self._bias = np.zeros(shape=(self.output_n,), dtype=dtype)
@@ -266,7 +264,6 @@ class PolynomialLayer(LayerBase):
             assert order_weights.ndim == 3, "Order weights must be three-dimensional array"
             assert order_weights.shape[1] == self.input_n, "Order weights matrices have incorrect number of input values"
             assert order_weights.shape[2] == self.output_n, "Order weights matrices have incorrect number of output values"
-            assert order_weights.dtype == dtype, "Order weights has incorrect data type"
             self._order_weights = order_weights
         else:
             self._order_weights = np.ones(shape=(1,n,m), dtype=dtype)
@@ -274,7 +271,6 @@ class PolynomialLayer(LayerBase):
         if bias is not None:
             assert bias.ndim == 1, "Bias must be one-dimensional array"
             assert bias.shape[0] == self.output_n, "Bias has incorrect number of values"
-            assert bias.dtype == dtype, "Bias has incorrect data type"
             self._bias = bias
         else:
             self._bias = np.zeros(shape=(self.output_n,), dtype=dtype)
