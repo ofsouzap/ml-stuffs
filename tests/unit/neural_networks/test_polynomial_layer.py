@@ -1,4 +1,4 @@
-from typing import Iterable, Tuple, List
+from typing import Iterable, Tuple
 import pytest
 import numpy as np
 import numpy.typing as npt
@@ -325,6 +325,44 @@ _FORWARDS_CASES_MANUAL_CALC_MULTI: Iterable[Tuple[npt.NDArray, npt.NDArray, npt.
             [ 4 ],
             [ 6 ],
             [ 4 ],
+        ], dtype=np.float64),
+    ),
+    (
+        np.array([
+            [
+                [ 0, 0 ],
+                [ 0, 0 ],
+                [ 0, 0 ],
+            ],
+            [
+                [ 1, 0 ],
+                [ 0, 1 ],
+                [ 0, 0 ],
+            ],
+            [
+                [ 2, 2 ],
+                [ 0, 2 ],
+                [ 0, 1 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0, 0 ], dtype=np.float64),
+        np.array([
+            [ 0, 0, 0 ],
+            [ 1, 0, 0 ],
+            [ 0, 1, 0 ],
+            [ 0, 0, 1 ],
+            [ 1, 2, 3 ],
+            [ 3, 2, 1 ],
+            [ 4, 4, 4 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 0, 0 ],
+            [ 3, 2 ],
+            [ 0, 3 ],
+            [ 0, 1 ],
+            [ 3, 49 ],
+            [ 63, 75 ],
+            [ 144, 336 ],
         ], dtype=np.float64),
     ),
 ]
