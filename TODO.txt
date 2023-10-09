@@ -18,6 +18,8 @@
     - Tests for stochastic learning implementation
     - Create some examples
 - Higher-order NN dense layers (e.g. quadratic, cubic etc)
+    / Forward propagation
+    - Backwards propagation
 - Try implement some parts in C and create Python bindings for them
     - For example, NNs
 - CNNs
