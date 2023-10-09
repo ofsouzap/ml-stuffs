@@ -301,27 +301,39 @@ class PolynomialLayer(LayerBase):
         assert xs.ndim == 2, "Input must be two-dimensional"
 
         mat_xs = xs[:,np.newaxis,:]
-        """The value at [i,1,j] gives the i'th input vector's j'th component"""
+        """The value at [i,0,j] gives the i'th input vector's j'th component"""
 
         mat_result: npt.NDArray = np.zeros(shape=(xs.shape[0],1,self.output_n), dtype=xs.dtype)
 
         # Add polynomial terms
 
-        mat_xs_tiled = np.tile(mat_xs, (self.order,1,1,1))
-        """4D array with the input vectors repeated. The value at [i,j,1,k] gives, for all valid i, the j'th input vector's k'th component"""
+        mat_xs_tiled = np.swapaxes(
+            np.tile(mat_xs, (self.order,1,1,1)),
+            0,
+            1
+        )
+        """4D array with the input vectors repeated. The value at [i,j,0,k] gives, for all valid j, the i'th input vector's k'th component"""
 
         pows = np.arange(1, self.order+1, dtype=xs.dtype)
         """1D array of powers to raise inputs to"""
 
-        mat_xs_powed = mat_xs_tiled * pows[:,np.newaxis,np.newaxis,np.newaxis]
+        mat_xs_powed = np.power(mat_xs_tiled, pows[np.newaxis,:,np.newaxis,np.newaxis])
         """4D array with the input vectors with their values to the appropriate powers. \
-The value at [i,j,1,k] gives the j'th input vector's k'th component to the power of (i+1)"""
+The value at [i,j,0,k] gives the i'th input vector's k'th component to the power of (j+1)"""
 
-        mat_result += np.matmul(mat_xs_powed, self._order_weights)
+        pows_result = np.matmul(mat_xs_powed, self._order_weights)
+        """4D array with outputs from matrix multiplications on input vectors to different powers. \
+The row vector at [i,j,0,:] is the output value for the i'th input vector using the j'th power using the weight matrix for that power"""
+
+        pows_result_summed = np.sum(pows_result, axis=1)
+        """3D array with the output row vectors for each input vector (without the bias). \
+The value at [i,0,j] gives the j'th component of the output vector for the i'th input vector"""
+
+        mat_result += pows_result_summed
 
         # Add constant terms (bias values)
 
-        mat_result += self.bias
+        mat_result += self.bias[np.newaxis,np.newaxis,:]
 
         # Return final result
 

@@ -186,7 +186,7 @@ _FORWARDS_CASES_AUTO_CALC_MULTI: Iterable[Tuple[npt.NDArray, npt.NDArray, npt.ND
                 [ 2, 2 ],
                 [ 2, 2 ],
             ],
-        ]),
+        ], dtype=np.float64),
         np.zeros(shape=(2,), dtype=np.float64),
         np.array([
             [ 1, 1, 1 ],
@@ -294,6 +294,37 @@ _FORWARDS_CASES_AUTO_CALC_MULTI: Iterable[Tuple[npt.NDArray, npt.NDArray, npt.ND
         np.array([
             [ 0, -0.5, 52 ],
             [ 0, 0, 0 ],
+        ], dtype=np.float64),
+    ),
+]
+
+
+_FORWARDS_CASES_MANUAL_CALC_MULTI: Iterable[Tuple[npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray]] = [
+    (
+        np.array([
+            [
+                [ 1 ],
+                [ 0 ],
+            ],
+            [
+                [ 0 ],
+                [ 1 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 2 ], dtype=np.float64),
+        np.array([
+            [ 0, 0 ],
+            [ 3, 2 ],
+            [ 2, 0 ],
+            [ 0, 2 ],
+            [ 1, 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 2 ],
+            [ 9 ],
+            [ 4 ],
+            [ 6 ],
+            [ 4 ],
         ], dtype=np.float64),
     ),
 ]
@@ -407,4 +438,8 @@ def test_forwards_cases_auto_calc_single(ws, b, inp):
 @pytest.mark.parametrize(["ws", "b", "inps"], _FORWARDS_CASES_AUTO_CALC_MULTI)
 def test_forwards_cases_auto_calc_multi(ws, b, inps):
     exps = _calc_auto_exp_forwards_multi(ws, b, inps)
+    return _run_test_forwards_multi(ws, b, inps, exps)
+
+@pytest.mark.parametrize(["ws", "b", "inps", "exps"], _FORWARDS_CASES_MANUAL_CALC_MULTI)
+def test_forwards_cases_manual_calc_multi(ws, b, inps, exps):
     return _run_test_forwards_multi(ws, b, inps, exps)
