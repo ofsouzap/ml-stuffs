@@ -382,7 +382,7 @@ The value at [i,j,k] gives the i'th input vector's k'th component to the power o
             grads_wrt_ys[:,np.newaxis,:] * np.sum(
                 pows[np.newaxis,np.newaxis,np.newaxis,:] * xs_powed_one_less[:,:,np.newaxis,:] * np.transpose(
                     self.order_weights,
-                    axes=(1,2,0)  # TODO - check if this transposing is really what I mean
+                    axes=(2,0,1)
                 )[np.newaxis,:,:,:],
                 axis=3
             ),
