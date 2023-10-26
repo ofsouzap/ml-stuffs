@@ -365,6 +365,320 @@ _FORWARDS_CASES_MANUAL_CALC_MULTI: Iterable[Tuple[npt.NDArray, npt.NDArray, npt.
             [ 144, 336 ],
         ], dtype=np.float64),
     ),
+    (
+        np.array([
+            [
+                [ 1, 0 ],
+                [ 0, 1 ],
+            ],
+            [
+                [ 2, 0 ],
+                [ 1, 0 ],
+            ],
+            [
+                [ 0, 0 ],
+                [ 0, 1 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0, 1 ], dtype=np.float64),
+        np.array([
+            [ 0, 0 ],
+            [ 1, 0 ],
+            [ 0, 1 ],
+            [ 2, -1 ],
+            [ 100, 0.5 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 0, 1 ],
+            [ 3, 1 ],
+            [ 1, 3 ],
+            [ 11, -1 ],
+            [ 20_100.25, 1.625 ],
+        ], dtype=np.float64),
+    ),
+]
+
+
+_BACKWARDS_CASES_CHANGE_DIRS_MULTI: Iterable[Tuple[npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray[np.bool_], npt.NDArray[np.bool_]]] = [
+    (
+        np.array([
+            [
+                [ 1 ],
+                [ 1 ],
+            ],
+            [
+                [ 1 ],
+                [ 0 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0 ], dtype=np.float64),
+        np.array([
+            [ 2, 4 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [
+                [ 0 ],
+                [ 0 ],
+            ],
+            [
+                [ 0 ],
+                [ 0 ],
+            ],
+        ], dtype=np.bool_),
+        np.array([ 0 ], dtype=np.bool_),
+    ),
+]
+
+
+_BACKWARDS_CASES_OUTPUT_GRADS_MULTI: Iterable[Tuple[npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray]] = [
+    (
+        np.array([
+            [
+                [ 1 ],
+                [ 1 ],
+            ],
+            [
+                [ 1 ],
+                [ 0 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0 ], dtype=np.float64),
+        np.array([
+            [ 2, 400 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 5, 1 ],
+        ], dtype=np.float64),
+    ),
+    (
+        np.array([
+            [
+                [ 1 ],
+                [ 1 ],
+            ],
+            [
+                [ 1 ],
+                [ 0 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0 ], dtype=np.float64),
+        np.array([
+            [ 2, 400 ],
+            [ 0, 0 ],
+            [ 5, 5 ],
+            [ -4, 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1 ],
+            [ 1 ],
+            [ 2 ],
+            [ -1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 5, 1 ],
+            [ 1, 1 ],
+            [ 22, 2 ],
+            [ 7, -1 ],
+        ], dtype=np.float64),
+    ),
+    (
+        np.array([
+            [
+                [ 1 ],
+                [ 1 ],
+            ],
+        ], dtype=np.float64),
+        np.zeros(shape=(1,), dtype=np.float64),
+        np.array([
+            [ 1, 1 ],
+            [ 0, 0 ],
+            [ 1, -1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1 ],
+            [ 1 ],
+            [ 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1, 1 ],
+            [ 1, 1 ],
+            [ 1, 1 ],
+        ], np.float64),
+    ),
+    (
+        np.array([
+            [
+                [ 1, 0 ],
+                [ 0, 1 ],
+            ],
+            [
+                [ 2, 0 ],
+                [ 1, 0 ],
+            ],
+            [
+                [ 0, 0 ],
+                [ 0, 1 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0, 1 ], dtype=np.float64),
+        np.array([
+            [ 0, 0 ],
+            [ 1, 0 ],
+            [ 0, 1 ],
+            [ 2, -1 ],
+            [ 100, 0.5 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1, 1 ],
+            [ 1, 2 ],
+            [ 1, 2 ],
+            [ 0, 1 ],
+            [ 1, 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1, 1 ],
+            [ 5, 2 ],
+            [ 1, 10 ],
+            [ 0, 4 ],
+            [ 401, 2.75 ],
+        ], dtype=np.float64),
+    ),
+]
+
+
+_BACKWARDS_CASES_PARAMETER_VALUES_MANUAL_CALC_MULTI: Iterable[Tuple[npt.NDArray, npt.NDArray, float, npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray]] = [
+    (
+        np.array([
+            [
+                [ 1 ],
+                [ 1 ],
+            ],
+            [
+                [ 1 ],
+                [ 0 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0 ], dtype=np.float64),
+        1,
+        np.array([
+            [ 2, 4 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [
+                [ -1 ],
+                [ -3 ],
+            ],
+            [
+                [ -3 ],
+                [ -16 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ -1 ], dtype=np.float64),
+    ),
+    (
+        np.array([
+            [
+                [ 1 ],
+                [ 1 ],
+            ],
+            [
+                [ 1 ],
+                [ 0 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0 ], dtype=np.float64),
+        1,
+        np.array([
+            [ 2, 4 ],
+            [ 1, 1 ],
+            [ -1, -1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ -10 ],
+            [ 1 ],
+            [ -3 ],
+        ], dtype=np.float64),
+        np.array([
+            [
+                [ 17 ],
+                [ 37 ],
+            ],
+            [
+                [ 43 ],
+                [ 162 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 12 ], dtype=np.float64),
+    ),
+    (
+        np.array([
+            [
+                [ 1 ],
+                [ 1 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0 ], dtype=np.float64),
+        1,
+        np.array([
+            [ 1, 1 ],
+            [ 0, 0 ],
+            [ 1, -1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1 ],
+            [ 1 ],
+            [ 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [
+                [ -1 ],
+                [ 1 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ -3 ], dtype=np.float64),
+    ),
+    (
+        np.array([
+            [
+                [ 1, 0 ],
+                [ 0, 1 ],
+            ],
+            [
+                [ 2, 0 ],
+                [ 1, 0 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0, 1 ], dtype=np.float64),
+        1,
+        np.array([
+            [ 0, 1 ],
+            [ 1, 2 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1, 1 ],
+            [ 1, 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [
+                [ 0, -1 ],
+                [ -3, -2 ],
+            ],
+            [
+                [ 1, -1 ],
+                [ -4, -5 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ -2, -1 ], dtype=np.float64),
+    ),
 ]
 
 
@@ -478,6 +792,107 @@ def test_forwards_cases_auto_calc_multi(ws, b, inps):
     exps = _calc_auto_exp_forwards_multi(ws, b, inps)
     return _run_test_forwards_multi(ws, b, inps, exps)
 
+
 @pytest.mark.parametrize(["ws", "b", "inps", "exps"], _FORWARDS_CASES_MANUAL_CALC_MULTI)
 def test_forwards_cases_manual_calc_multi(ws, b, inps, exps):
     return _run_test_forwards_multi(ws, b, inps, exps)
+
+
+@pytest.mark.parametrize(["ws", "b", "xs", "grads_wrt_ys", "exp_ws_inc", "exp_bs_inc"], _BACKWARDS_CASES_CHANGE_DIRS_MULTI)
+def test_backwards_cases_change_directions_multi(
+    ws: npt.NDArray,
+    b: npt.NDArray,
+    xs: npt.NDArray,
+    grads_wrt_ys: npt.NDArray,
+    exp_ws_inc: npt.NDArray[np.bool_],
+    exp_bs_inc: npt.NDArray[np.bool_]):
+
+    assert ws.ndim == exp_ws_inc.ndim == 3
+    assert b.ndim == exp_bs_inc.ndim == 1
+    assert xs.ndim == grads_wrt_ys.ndim == 2
+    assert ws.shape == exp_ws_inc.shape
+    assert b.shape == exp_bs_inc.shape
+    assert ws.shape[1] == xs.shape[1]
+    assert ws.shape[2] == b.shape[0] == grads_wrt_ys.shape[1]
+    assert xs.shape[0] == grads_wrt_ys.shape[0]
+
+    # Arrange
+
+    layer = _create(ws, b)
+
+    prev_ws = layer.order_weights.copy()
+    prev_bs = layer.bias.copy()
+
+    # Act
+    layer.backwards_multi(xs, grads_wrt_ys)
+
+    # Assert
+
+    new_ws = layer.order_weights.copy()
+    new_bs = layer.bias.copy()
+
+    ws_inc = new_ws > prev_ws
+    bs_inc = new_bs > prev_bs
+
+    assert_allclose(ws_inc, exp_ws_inc)
+    assert_allclose(bs_inc, exp_bs_inc)
+
+
+@pytest.mark.parametrize(["ws", "b", "xs", "grad_wrt_ys", "exp"], _BACKWARDS_CASES_OUTPUT_GRADS_MULTI)
+def test_backwards_cases_output_grads_multi(
+    ws: npt.NDArray,
+    b: npt.NDArray,
+    xs: npt.NDArray,
+    grad_wrt_ys: npt.NDArray,
+    exp: npt.NDArray):
+
+    assert ws.ndim == 3
+    assert b.ndim == 1
+    assert xs.ndim == grad_wrt_ys.ndim == exp.ndim == 2
+    assert ws.shape[1] == xs.shape[1] == exp.shape[1]
+    assert ws.shape[2] == b.shape[0]
+    assert xs.shape[0] == grad_wrt_ys.shape[0] == exp.shape[0]
+
+    # Arrange
+    layer = _create(ws, b)
+
+    # Act
+    out = layer.backwards_multi(xs, grad_wrt_ys)
+
+    # Assert
+    assert_allclose(out, exp)
+
+
+@pytest.mark.parametrize(["ws", "b", "learning_rate", "xs", "grads_wrt_ys", "exp_ws", "exp_bs"], _BACKWARDS_CASES_PARAMETER_VALUES_MANUAL_CALC_MULTI)
+def test_backwards_cases_parameter_values_manual_calc_multi(
+    ws: npt.NDArray,
+    b: npt.NDArray,
+    learning_rate: float,
+    xs: npt.NDArray,
+    grads_wrt_ys: npt.NDArray,
+    exp_ws: npt.NDArray,
+    exp_bs: npt.NDArray):
+
+    assert ws.ndim == exp_ws.ndim == 3
+    assert b.ndim == exp_bs.ndim == 1
+    assert xs.ndim == grads_wrt_ys.ndim == 2
+    assert ws.shape == exp_ws.shape
+    assert b.shape == exp_bs.shape
+    assert ws.shape[1] == xs.shape[1]
+    assert ws.shape[2] == b.shape[0] == grads_wrt_ys.shape[1]
+    assert xs.shape[0] == grads_wrt_ys.shape[0]
+
+    # Arrange
+
+    layer = _create(ws, b, learning_rate)
+
+    # Act
+    layer.backwards_multi(xs, grads_wrt_ys)
+
+    # Assert
+
+    new_ws = layer.order_weights.copy()
+    new_bs = layer.bias.copy()
+
+    assert_allclose(new_ws, exp_ws)
+    assert_allclose(new_bs, exp_bs)
