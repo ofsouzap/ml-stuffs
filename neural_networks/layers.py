@@ -378,14 +378,26 @@ The value at [i,j,k] gives the i'th input vector's k'th component to the power o
 
         # Calculate gradients w.r.t. inputs (i.e. ∂ cost / ∂ x) before changing parameter values
 
+        _reaxis_xs_pows = pows[np.newaxis,np.newaxis,np.newaxis,:]
+        """Value at [_,_,_,l] gives l+1"""
+
+        _reaxis_xs_powed_one_less = np.transpose(
+            xs_powed_one_less,
+            (0,2,1)
+        )[:,:,np.newaxis,:]
+
+        reaxis_order_weights = np.transpose(
+            self.order_weights,
+            axes=(1,2,0)
+        )[np.newaxis,:,:,:]
+
+        ys_grads_wrt_xs: npt.NDArray = np.sum(
+            _reaxis_xs_pows * _reaxis_xs_powed_one_less * reaxis_order_weights,
+            axis=3
+        )
+
         grads_wrt_xs: npt.NDArray = np.sum(
-            grads_wrt_ys[:,np.newaxis,:] * np.sum(
-                pows[np.newaxis,np.newaxis,np.newaxis,:] * xs_powed_one_less[:,:,np.newaxis,:] * np.transpose(
-                    self.order_weights,
-                    axes=(2,0,1)
-                )[np.newaxis,:,:,:],
-                axis=3
-            ),
+            grads_wrt_ys[:,np.newaxis,:] * ys_grads_wrt_xs,
             axis=2
         )
         """∂ cost_i / ∂ x_j = Σ_k ( ∂ cost_i / ∂ y_k  * Σ_l ( l * (x_j)^(l-1) * W_ljk ) )"""

@@ -416,7 +416,7 @@ _BACKWARDS_CASES_OUTPUT_GRADS_MULTI: Iterable[Tuple[npt.NDArray, npt.NDArray, np
         ], dtype=np.float64),
         np.array([ 0 ], dtype=np.float64),
         np.array([
-            [ 2, 4 ],
+            [ 2, 400 ],
         ], dtype=np.float64),
         np.array([
             [ 1 ],
