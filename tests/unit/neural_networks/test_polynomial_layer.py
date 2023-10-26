@@ -427,6 +427,7 @@ _BACKWARDS_CASES_OUTPUT_GRADS_MULTI: Iterable[Tuple[npt.NDArray, npt.NDArray, np
     ),
     # TODO - same as first case but with multiple inputs
     # TODO - first-order test case
+    # TODO - case with multiple output variables
 ]
 
 
@@ -498,6 +499,7 @@ _BACKWARDS_CASES_PARAMETER_VALUES_MANUAL_CALC_MULTI: Iterable[Tuple[npt.NDArray,
         np.array([ 12 ], dtype=np.float64),
     ),
     # TODO - first-order test case
+    # TODO - case with multiple output variables
 ]
 
 
