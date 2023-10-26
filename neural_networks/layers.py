@@ -294,8 +294,19 @@ class PolynomialLayer(LayerBase):
         return self._bias
 
     def __str__(self) -> str:
-        # TODO - proper implementation. Use DenseLayer.__str__ as reference
-        return "Polynomial Layer"
+        output_form_strs: List[str] = []
+        for j in range(self.output_n):
+            output_form_strs.append(
+                " + ".join([
+                    " + ".join([
+                        f"{self.order_weights[n,i,j]}*x_{i}^{n+1}"
+                        for n in range(self.order)
+                    ])
+                    for i in range(self.input_n)
+                ]) + \
+                f" + {self.bias[j]}"
+            )
+        return " & ".join([f"({s})" for s in output_form_strs])
 
     def forwards_multi(self, xs: npt.NDArray) -> npt.NDArray:
 
