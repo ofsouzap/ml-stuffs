@@ -365,6 +365,37 @@ _FORWARDS_CASES_MANUAL_CALC_MULTI: Iterable[Tuple[npt.NDArray, npt.NDArray, npt.
             [ 144, 336 ],
         ], dtype=np.float64),
     ),
+    (
+        np.array([
+            [
+                [ 1, 0 ],
+                [ 0, 1 ],
+            ],
+            [
+                [ 2, 0 ],
+                [ 1, 0 ],
+            ],
+            [
+                [ 0, 0 ],
+                [ 0, 1 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0, 1 ], dtype=np.float64),
+        np.array([
+            [ 0, 0 ],
+            [ 1, 0 ],
+            [ 0, 1 ],
+            [ 2, -1 ],
+            [ 100, 0.5 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 0, 1 ],
+            [ 3, 1 ],
+            [ 1, 3 ],
+            [ 11, -1 ],
+            [ 20_100.25, 1.625 ],
+        ], dtype=np.float64),
+    ),
 ]
 
 
@@ -425,9 +456,99 @@ _BACKWARDS_CASES_OUTPUT_GRADS_MULTI: Iterable[Tuple[npt.NDArray, npt.NDArray, np
             [ 5, 1 ],
         ], dtype=np.float64),
     ),
-    # TODO - same as first case but with multiple inputs
-    # TODO - first-order test case
-    # TODO - case with multiple output variables
+    (
+        np.array([
+            [
+                [ 1 ],
+                [ 1 ],
+            ],
+            [
+                [ 1 ],
+                [ 0 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0 ], dtype=np.float64),
+        np.array([
+            [ 2, 400 ],
+            [ 0, 0 ],
+            [ 5, 5 ],
+            [ -4, 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1 ],
+            [ 1 ],
+            [ 2 ],
+            [ -1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 5, 1 ],
+            [ 1, 1 ],
+            [ 22, 2 ],
+            [ 7, -1 ],
+        ], dtype=np.float64),
+    ),
+    (
+        np.array([
+            [
+                [ 1 ],
+                [ 1 ],
+            ],
+        ], dtype=np.float64),
+        np.zeros(shape=(1,), dtype=np.float64),
+        np.array([
+            [ 1, 1 ],
+            [ 0, 0 ],
+            [ 1, -1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1 ],
+            [ 1 ],
+            [ 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1, 1 ],
+            [ 1, 1 ],
+            [ 1, 1 ],
+        ], np.float64),
+    ),
+    (
+        np.array([
+            [
+                [ 1, 0 ],
+                [ 0, 1 ],
+            ],
+            [
+                [ 2, 0 ],
+                [ 1, 0 ],
+            ],
+            [
+                [ 0, 0 ],
+                [ 0, 1 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0, 1 ], dtype=np.float64),
+        np.array([
+            [ 0, 0 ],
+            [ 1, 0 ],
+            [ 0, 1 ],
+            [ 2, -1 ],
+            [ 100, 0.5 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1, 1 ],
+            [ 1, 2 ],
+            [ 1, 2 ],
+            [ 0, 1 ],
+            [ 1, 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1, 1 ],
+            [ 5, 2 ],
+            [ 1, 10 ],
+            [ 0, 4 ],
+            [ 401, 2.75 ],
+        ], dtype=np.float64),
+    ),
 ]
 
 
@@ -498,8 +619,66 @@ _BACKWARDS_CASES_PARAMETER_VALUES_MANUAL_CALC_MULTI: Iterable[Tuple[npt.NDArray,
         ], dtype=np.float64),
         np.array([ 12 ], dtype=np.float64),
     ),
-    # TODO - first-order test case
-    # TODO - case with multiple output variables
+    (
+        np.array([
+            [
+                [ 1 ],
+                [ 1 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0 ], dtype=np.float64),
+        1,
+        np.array([
+            [ 1, 1 ],
+            [ 0, 0 ],
+            [ 1, -1 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1 ],
+            [ 1 ],
+            [ 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [
+                [ -1 ],
+                [ 1 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ -3 ], dtype=np.float64),
+    ),
+    (
+        np.array([
+            [
+                [ 1, 0 ],
+                [ 0, 1 ],
+            ],
+            [
+                [ 2, 0 ],
+                [ 1, 0 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ 0, 1 ], dtype=np.float64),
+        1,
+        np.array([
+            [ 0, 1 ],
+            [ 1, 2 ],
+        ], dtype=np.float64),
+        np.array([
+            [ 1, 1 ],
+            [ 1, 1 ],
+        ], dtype=np.float64),
+        np.array([
+            [
+                [ 0, -1 ],
+                [ -3, -2 ],
+            ],
+            [
+                [ 1, -1 ],
+                [ -4, -5 ],
+            ],
+        ], dtype=np.float64),
+        np.array([ -2, -1 ], dtype=np.float64),
+    ),
 ]
 
 
