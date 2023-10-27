@@ -40,5 +40,12 @@
             "module": "examples.neural_networks.simple_nn_basic_learning_process",
             "justMyCode": true
         },
+        {
+            "name": "NN Single Polynomial Layer Learning Process",
+            "type": "python",
+            "request": "launch",
+            "module": "examples.neural_networks.nn_single_polynomial_layer_learning",
+            "justMyCode": true
+        },
     ]
 }
