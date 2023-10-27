@@ -239,6 +239,7 @@ class PolynomialLayer(LayerBase):
                  n: int,
                  m: int,
                  learning_rate: float,
+                 order: Optional[int] = None,
                  order_weights: Optional[npt.NDArray] = None,
                  bias: Optional[npt.NDArray] = None):
         super().__init__(n, m, learning_rate)
@@ -264,9 +265,13 @@ class PolynomialLayer(LayerBase):
             assert order_weights.ndim == 3, "Order weights must be three-dimensional array"
             assert order_weights.shape[1] == self.input_n, "Order weights matrices have incorrect number of input values"
             assert order_weights.shape[2] == self.output_n, "Order weights matrices have incorrect number of output values"
+            assert (order is None) or (order_weights.shape[0] == order), "Order provided isn't the order of the order weights provided"
             self._order_weights = order_weights
         else:
-            self._order_weights = np.ones(shape=(1,n,m), dtype=dtype)
+            _auto_order: int = 1
+            if order is not None:
+                _auto_order = order
+            self._order_weights = np.ones(shape=(_auto_order,n,m), dtype=dtype)
 
         if bias is not None:
             assert bias.ndim == 1, "Bias must be one-dimensional array"
