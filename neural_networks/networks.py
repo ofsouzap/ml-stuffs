@@ -305,60 +305,18 @@ Returns:
             cost_func,
         )
 
-    def learn_stochastic(self,
-                         xs: npt.NDArray,
-                         exps: npt.NDArray,
-                         cost_func: NNCostFunction,
-                         sample_size: int,
-                         iteration_count: Optional[int] = None,
-                         avg_cost_threshold: Optional[float] = None,
-                         min_cost_threshold: Optional[float] = None,
-                         max_cost_threshold: Optional[float] = None,
-                         provide_cost_output: bool = True,
-                         rng: Optional[np.random.Generator] = None) -> Iterable[npt.NDArray]:
-        """Performs multiple iterations of stochastic gradient descent learning algorithm to reduce the value of the cost function
-
-Parameters:
-
-    xs - the input vectors to provide for the forwards propagation
-
-    exps - the expected output vectors for the given input vectors
-
-    cost_func - the cost function to use
-
-    sample_size - the number of the samples that should be used. The samples actually used are randomly selected
-
-    iteration_count - (see "Termination" below)
-
-    avg_cost_threshold - (see "Termination" below)
-
-    min_cost_threshold - (see "Termination" below)
-
-    max_cost_threshold - (see "Termination" below)
-
-    provide_cost_output (default True) - whether to calculate and return the costs of the network after each step
-
-    rng (optional) - the RNG to use. If not provided or None then a new one is created
-
-Returns:
-
-    costs_it - an iterable of the calculated cost values for every input after each step of the cycle. \
-If provide_cost_output is False, however, all values yielded will be empty arrays.
-
-Termination:
-
-    So that the learning cycle can be terminated, at least one of the termination parameters must be provided. \
-This will then determine when the learning stops. \
-When any one of the conditions is fulfilled (if one isn't provided then it isn't considered), the learning cycle is terminated at the end of it's step.
-
-    iteration_count is a positive integer determining the maximum number of learning steps to perform.
-
-    avg_cost_threshold is a real value. If the average cost for each input vector is below this then the cycle is terminated.
-
-    min_cost_threshold is a real value. If the least-positive cost for each input vector is below this then the cycle is terminated.
-
-    max_cost_threshold is a real value. If the greatest-positive cost for each input vector is below this then the cycle is terminated.
-"""
+    def learn_stochastic_it(self,
+                            xs: npt.NDArray,
+                            exps: npt.NDArray,
+                            cost_func: NNCostFunction,
+                            sample_size: int,
+                            iteration_count: Optional[int] = None,
+                            avg_cost_threshold: Optional[float] = None,
+                            min_cost_threshold: Optional[float] = None,
+                            max_cost_threshold: Optional[float] = None,
+                            provide_cost_output: bool = True,
+                            rng: Optional[np.random.Generator] = None) -> Iterator[npt.NDArray]:
+        """(Same as learn_stochastic but will return an Iterator yielding after each learning step)"""
 
         # Checks
 
@@ -391,8 +349,6 @@ When any one of the conditions is fulfilled (if one isn't provided then it isn't
 
         # Run cycle
 
-        outs: List[npt.NDArray] = []
-
         for iteration_idx in itertools.count(start=0):
 
             # Perform step
@@ -418,7 +374,7 @@ When any one of the conditions is fulfilled (if one isn't provided then it isn't
 
             # Yield output
 
-            outs.append(costs.copy())
+            yield costs.copy()
 
             # Termination check
 
@@ -432,4 +388,69 @@ When any one of the conditions is fulfilled (if one isn't provided then it isn't
                 if costs_check(costs):
                     break
 
-        return outs
+    def learn_stochastic(self,
+                            xs: npt.NDArray,
+                            exps: npt.NDArray,
+                            cost_func: NNCostFunction,
+                            sample_size: int,
+                            iteration_count: Optional[int] = None,
+                            avg_cost_threshold: Optional[float] = None,
+                            min_cost_threshold: Optional[float] = None,
+                            max_cost_threshold: Optional[float] = None,
+                            provide_cost_output: bool = True,
+                            rng: Optional[np.random.Generator] = None) -> Iterable[npt.NDArray]:
+        """Performs multiple iterations of stochastic gradient descent learning algorithm to reduce the value of the cost function. Returns an Iterator!
+
+Parameters:
+
+    xs - the input vectors to provide for the forwards propagation
+
+    exps - the expected output vectors for the given input vectors
+
+    cost_func - the cost function to use
+
+    sample_size - the number of the samples that should be used. The samples actually used are randomly selected
+
+    iteration_count - (see "Termination" below)
+
+    avg_cost_threshold - (see "Termination" below)
+
+    min_cost_threshold - (see "Termination" below)
+
+    max_cost_threshold - (see "Termination" below)
+
+    provide_cost_output (default True) - whether to calculate and return the costs of the network after each step
+
+    rng (optional) - the RNG to use. If not provided or None then a new one is created
+
+Returns:
+
+    costs_it - an iterator of the calculated cost values for every input after each step of the cycle. \
+If provide_cost_output is False, however, all values yielded will be empty arrays.
+
+Termination:
+
+    So that the learning cycle can be terminated, at least one of the termination parameters must be provided. \
+This will then determine when the learning stops. \
+When any one of the conditions is fulfilled (if one isn't provided then it isn't considered), the learning cycle is terminated at the end of it's step.
+
+    iteration_count is a positive integer determining the maximum number of learning steps to perform.
+
+    avg_cost_threshold is a real value. If the average cost for each input vector is below this then the cycle is terminated.
+
+    min_cost_threshold is a real value. If the least-positive cost for each input vector is below this then the cycle is terminated.
+
+    max_cost_threshold is a real value. If the greatest-positive cost for each input vector is below this then the cycle is terminated.
+"""
+        return list(self.learn_stochastic_it(
+            xs=xs,
+            exps=exps,
+            cost_func=cost_func,
+            sample_size=sample_size,
+            iteration_count=iteration_count,
+            avg_cost_threshold=avg_cost_threshold,
+            min_cost_threshold=min_cost_threshold,
+            max_cost_threshold=max_cost_threshold,
+            provide_cost_output=provide_cost_output,
+            rng=rng,
+        ))
