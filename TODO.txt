@@ -16,7 +16,12 @@
     / Learning method with multiple inputs and expecteds (probably made as part of the aboves)
     / Stochastic learning implementation
     / Tests for stochastic learning implementation
-- CNNs
-- Higher-order NN dense layers (e.g. quadratic, cubic etc)
+/ Higher-order NN dense layers (e.g. quadratic, cubic etc)
+    / Forward propagation
+    / Backwards propagation
 - Try implement some parts in C and create Python bindings for them
     - For example, NNs
+/ For NNs, have extra function for learning that returns iterator, not iterable, so that can have logic between iterations optionally
+- CNNs
+- Try use 3 -> 1 NN polynomial layer to determine an implicit equation for a surface given a point cloud
+    - Fix .ipynb notebook in examples/neural_networks/nn_implicit_function_learning.ipynb not being able to import modules

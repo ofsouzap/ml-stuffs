@@ -179,3 +179,6 @@ _trying*.ipynb
 
 # Cached data stuff
 .cached_data/*
+
+# Include the Jupyter notebooks I want
+!examples/neural_networks/nn_implicit_function_learning.ipynb
